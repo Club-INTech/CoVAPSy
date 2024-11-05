@@ -1,8 +1,9 @@
 # Router info
 
 IP: 192.168.1.1
-Psw: Intech_routeur
-
+Psw: Intech_routeur 
+Login : intech
+Psw: intech
 
 # Rasberry
 
