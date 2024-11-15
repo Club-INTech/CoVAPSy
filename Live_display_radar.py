@@ -200,8 +200,12 @@ class HokuyoReader():
 if __name__ == '__main__':
     sensor = HokuyoReader(IP, PORT)
     sensor.stop()
-    # sensor.singleRead(0, 1080)
-    time.sleep(2)
-
     sensor.startContinuous(0, 1080)
-    sensor.startPlotter()
+    time.sleep(2)
+    for i in range(10):
+        print(type(sensor.rDistance))
+        print(sensor.rDistance)
+        time.sleep(2)
+        sensor.stop()
+    # sensor.startContinuous(0, 1080)
+    # sensor.startPlotter()
