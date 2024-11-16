@@ -1,6 +1,6 @@
 """Voiture autonome avec utilisation d'un
 LIDAR sur WEBOTS
-Auteur : Chrysanthe et Jessica
+Auteur: Chrysanthe et Jessica
 """
 
 import numpy as np
@@ -10,6 +10,7 @@ import time
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from vehicle import Driver
 from controller import Lidar
@@ -20,59 +21,57 @@ from controller import Supervisor
 #--------------GYM----------------------------
 
 #Création de l'environnement GYM
-class WebotsGymEnvironment(Driver, gym.Env) :
+class WebotsGymEnvironment(gym.Env):
     def __init__(self):
-        super().__init__() #Objet héritant la classe Driver
+        #Initialisation du driver
+        self.driver = Driver()
 
-        basicTimeStep = int(super().getBasicTimeStep())
+        basicTimeStep = int(self.driver.getBasicTimeStep())
         self.sensorTime = basicTimeStep//4
 
-        #Lidar
-        self.lidar = Lidar("lidar")
+        #Paramètre de la voiture (position, etc..)
+        self.voiture_robot = self.driver.getFromDef("vehicle")
 
-        #Capteur LIDAR
+        #Lidar
+        self.lidar = self.driver.getDevice('lidar')
         self.lidar.enable(self.sensorTime)
         self.lidar.enablePointCloud()
 
-        self.action_space = gym.spaces.Discrete(5) #actions disponibles
-
-        min = np.zeros(self.lidar.getNumberOfPoints())
-        max = np.ones(self.lidar.getNumberOfPoints())
-        self.observation_space = gym.spaces.Box(min, max, dtype=np.float32) #Etat venant du LIDAR
-
-
-        #Paramètre de la voiture (position, etc..)
-        self.voiture_robot = super().getFromDef("vehicle")
-        self.trans_champs = self.voiture_robot.getField("translation")
-        self.rot_champs = self.voiture_robot.getField("rotation")
-
-
         #Capteur de distance
-        self.capteur_avant = super().getDevice('front_center_sensor')
-        self.capteur_gauche = super().getDevice('side_left_sensor')
-        self.capteur_droite = super().getDevice('side_right_sensor')
+        self.capteur_avant = self.driver.getDevice('front_center_sensor')
+        self.capteur_gauche = self.driver.getDevice('side_left_sensor')
+        self.capteur_droite = self.driver.getDevice('side_right_sensor')
         self.capteur_avant.enable(self.sensorTime)
         self.capteur_gauche.enable(self.sensorTime)
         self.capteur_droite.enable(self.sensorTime)
 
         #Capteur de balise
-        self.capteur_balise = super().getDevice('capteur_balise')
+        self.capteur_balise = self.driver.getDevice('capteur_balise')
         self.capteur_balise.enable(self.sensorTime)
 
+        self.action_space = gym.spaces.Discrete(5) #actions disponibles
+        min = np.zeros(self.lidar.getNumberOfPoints())
+        max = np.ones(self.lidar.getNumberOfPoints())
+        self.observation_space = gym.spaces.Box(min, max, dtype=np.float32) #Etat venant du LIDAR
+
+        self.trans_champs = self.voiture_robot.getField("translation")
+        self.rot_champs = self.voiture_robot.getField("rotation") # idk why but if this goes befor Lidar it will not work
+
+
     #Vérification de l'état de la voiture
-    def observe(self) :
-        try :
+    def observe(self):
+        try:
             tableau = self.lidar.getRangeImage()
             #Division par 10 pour que la valeur soient entre 0 et 1
-            etat = np.divide(np.array(tableau),10)
-        except : #En cas de non retour lidar
+            etat = np.array(tableau, dtype=np.float32)/10
+        except: #En cas de non retour lidar
             print("Pas de retour du lidar")
-            etat = np.zeros(self.lidar.getNumberOfPoints())
+            etat = np.zeros(self.lidar.getNumberOfPoints(), dtype=np.float32)
 
-        return np.array(etat).astype('float32')
+        return etat
 
-    #Remise à 0
-    def initialisation(self) :
+    #Remise à 0 pour l'environnement GYM
+    def reset(self, seed=0):
         #self.capteur_avant.disable()
         #self.capteur_gauche.disable()
         #self.capteur_droite.disable()
@@ -92,76 +91,49 @@ class WebotsGymEnvironment(Driver, gym.Env) :
         #self.capteur_avant.enable(self.sensorTime)
         #self.capteur_gauche.enable(self.sensorTime)
         #self.capteur_droite.enable(self.sensorTime)
-
-    #Remise à 0 pour l'environnement GYM
-    def reset(self, seed=0):
-        self.initialisation()
         #Retour état
         obs = self.observe()
         #super().step()
         info = {}
         return obs, info
 
-    #Fonction pour detection de collision et attribution des récompenses
-    def evaluer(self):
-        recompense = 0
+    #Fonction step de l'environnement GYM
+    def step(self, action):
+        self.driver.setSteeringAngle([-.4, -.1, 0, .1, .4][action])
+        self.driver.setCruisingSpeed(1.0)
+
+        obs = self.observe()
+
+        reward = 0
         done = False
+        truncated = False
 
         avant = self.capteur_avant.getValue()
         gauche = self.capteur_gauche.getValue()
         droite = self.capteur_droite.getValue()
         balise = self.capteur_balise.getValue()
 
-        if avant >= 900 and not(done) :
+        if avant >= 900 and not(done):
             print("Collision avant")
-            recompense = -100
+            reward = -100
             done = True
-        elif ((avant >= 854 and gauche >= 896) or (avant >= 696 and gauche >= 910) or gauche >= 937) and not(done) :
+        elif ((avant >= 854 and gauche >= 896) or (avant >= 696 and gauche >= 910) or gauche >= 937) and not(done):
             print("Collision gauche")
-            recompense = -100
+            reward = -100
             done = True
-        elif ((avant >= 850 and droite >= 893) or (avant >= 584 and droite >= 910) or droite >= 961) and not(done) :
+        elif ((avant >= 850 and droite >= 893) or (avant >= 584 and droite >= 910) or droite >= 961) and not(done):
             print("Collision droite")
-            recompense = -100
+            reward = -100
             done = True
-        elif balise > 700 :
+        elif balise > 700:
             done = False
             print("Balise passée")
-            recompense = 20
-        else :
+            reward = 20
+        else:
             done = False
-            recompense = 0
+            reward = 0
 
-        return recompense, done, False # we never truncate for now but maybe in the future ?
-
-    #Fonction pou   r déplacer la voiture
-    def rouler(self, action) :
-        super().setCruisingSpeed(1.0)
-
-        if action == 0 :
-            super().setSteeringAngle(-0.4)
-
-        elif action == 1 :
-            super().setSteeringAngle(-0.1)
-
-        elif action == 2 :
-            super().setSteeringAngle(0)
-
-        elif action == 3 :
-            super().setSteeringAngle(0.1)
-
-        elif action == 4 :
-            super().setSteeringAngle(0.4)
-
-    #Fonction step de l'environnement GYM
-    def step(self, action):
-        self.rouler(action)
-
-        obs = self.observe()
-
-        reward, done, truncated = self.evaluer()
-
-        super().step()
+        self.driver.step()
 
         return obs, reward, done, truncated, {}
 
@@ -171,7 +143,9 @@ class WebotsGymEnvironment(Driver, gym.Env) :
 
 
 #----------------Programme principal--------------------
-def main() :
+def main():
+    n_envs = 4
+    # env = SubprocVecEnv([lambda: WebotsGymEnvironment() for i in range(n_envs)])
     env = WebotsGymEnvironment()
     check_env(env)
 
@@ -180,12 +154,13 @@ def main() :
 
     #Définition modèle avec paramètre par défaut
     model = PPO('MlpPolicy', env,
-                n_steps = 256,
-                ent_coef = 0.01,
-                n_epochs = 5,
-                batch_size= 32,
-                learning_rate= 3e-3,
-                verbose=1)
+        n_steps=2048,
+        n_epochs=10,
+        batch_size=32,
+        learning_rate=3e-3,
+        verbose=1,
+        device='cuda:0'
+    )
 
     #Entrainnement
     model.learn(total_timesteps=1e6)
@@ -208,6 +183,6 @@ def main() :
             obs = env.reset()
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     main()
 
