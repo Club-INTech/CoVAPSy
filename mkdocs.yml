@@ -8,7 +8,7 @@ nav:
 
 theme: 
   name: readthedocs
-  logo: img/favicon.png
+  logo: img/autotech_logo.png
   #locale: fr # does not work idk why -Arnaud
 
 repo_url: https://github.com/Club-INTech/CoVAPSy/
