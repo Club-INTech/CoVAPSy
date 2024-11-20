@@ -1,0 +1,8 @@
+site_name: AutoTech
+
+nav:
+  - Home: index.md
+  - Lidar: Lidar.md
+  - Docs: building_docs.md
+
+theme: readthedocs
