@@ -1,4 +1,14 @@
-#VRML_SIM R2022a utf8
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/appearances/protos/Parquetry.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/apartment_structure/protos/Wall.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/appearances/protos/Roughcast.proto"
+IMPORTABLE EXTERNPROTO "../protos/Vehicle.proto"
+
+
 WorldInfo {
 }
 Viewpoint {
@@ -222,3 +232,11 @@ Wall {
   name "wall(1)"
   size 0.05 4.5 0.2
 }
+DEF WorldSupervisor Robot {
+  supervisor TRUE
+  name "WorldSupervisor"
+  controller "controllerWorldSupervisor"
+  children []
+}
+
+
