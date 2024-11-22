@@ -1,6 +1,6 @@
-PROTO vehicle [
-  field SFString name "vehicule"
-] Robot {
+#VRML_SIM R2022a utf8
+
+DEF vehicle Robot {
   translation 1.49768 3.85153 0.0209979
   rotation -0.000257203942361522 0.0006180928614876137 0.9999997759036483 -0.7840253071795864
   children [
@@ -21,29 +21,29 @@ PROTO vehicle [
           }
           device [
             RotationalMotor {
-              name IS name + "_left_steer"
+              name "left_steer"
               minPosition -1.34
               maxPosition 1.34
               maxTorque 10000
               sound ""
             }
             PositionSensor {
-              name IS name + "_left_steer_sensor"
+              name "left_steer_sensor"
             }
           ]
           device2 [
             RotationalMotor {
-              name IS name + "_left_front_wheel"
+              name "left_front_wheel"
               acceleration 694.4444444444445
               maxVelocity 29.799999999999997
               maxTorque 100000000
               sound ""
             }
             PositionSensor {
-              name IS name + "_left_front_sensor"
+              name "left_front_sensor"
             }
             Brake {
-              name IS name + "_left_front_brake"
+              name "left_front_brake"
             }
           ]
           endPoint Slot {
@@ -140,7 +140,7 @@ PROTO vehicle [
                     ]
                   }
                 ]
-                name IS name + "_front left wheel"
+                name "front left wheel"
                 model "vehicle wheel"
                 boundingObject Transform {
                   rotation 0 1 0 1.570796
@@ -177,29 +177,29 @@ PROTO vehicle [
           }
           device [
             RotationalMotor {
-              name IS name + "_right_steer"
+              name "right_steer"
               minPosition -1.34
               maxPosition 1.34
               maxTorque 10000
               sound ""
             }
             PositionSensor {
-              name IS name + "_right_steer_sensor"
+              name "right_steer_sensor"
             }
           ]
           device2 [
             RotationalMotor {
-              name IS name + "_right_front_wheel"
+              name "right_front_wheel"
               acceleration 694.4444444444445
               maxVelocity 29.799999999999997
               maxTorque 100000000
               sound ""
             }
             PositionSensor {
-              name IS name + "_right_front_sensor"
+              name "right_front_sensor"
             }
             Brake {
-              name IS name + "_right_front_brake"
+              name "right_front_brake"
             }
           ]
           endPoint Slot {
@@ -296,7 +296,7 @@ PROTO vehicle [
                     ]
                   }
                 ]
-                name IS name + "_front right wheel"
+                name "front right wheel"
                 model "vehicle wheel"
                 boundingObject Transform {
                   rotation 0 1 0 1.570796
@@ -330,17 +330,17 @@ PROTO vehicle [
           }
           device [
             RotationalMotor {
-              name IS name + "_left_rear_wheel"
+              name "left_rear_wheel"
               acceleration 694.4444444444445
               maxVelocity 29.799999999999997
               maxTorque 100000000
               sound ""
             }
             PositionSensor {
-              name IS name + "_left_rear_sensor"
+              name "left_rear_sensor"
             }
             Brake {
-              name IS name + "_left_rear_brake"
+              name "left_rear_brake"
             }
           ]
           endPoint Slot {
@@ -437,7 +437,7 @@ PROTO vehicle [
                     ]
                   }
                 ]
-                name IS name + "_rear left wheel"
+                name "rear left wheel"
                 model "vehicle wheel"
                 boundingObject Transform {
                   rotation 0 1 0 1.570796
@@ -470,17 +470,17 @@ PROTO vehicle [
           }
           device [
             RotationalMotor {
-              name IS name + "_right_rear_wheel"
+              name "right_rear_wheel"
               acceleration 694.4444444444445
               maxVelocity 29.799999999999997
               maxTorque 100000000
               sound ""
             }
             PositionSensor {
-              name IS name + "_right_rear_sensor"
+              name "right_rear_sensor"
             }
             Brake {
-              name IS name + "_right_rear_brake"
+              name "right_rear_brake"
             }
           ]
           endPoint Slot {
@@ -577,7 +577,7 @@ PROTO vehicle [
                     ]
                   }
                 ]
-                name IS name + "_rear right wheel"
+                name "rear right wheel"
                 model "vehicle wheel"
                 boundingObject Transform {
                   rotation 0 1 0 1.570796
@@ -599,7 +599,7 @@ PROTO vehicle [
     }
     Speaker {
       translation 0.1 0 0
-      name IS name + "_engine_speaker"
+      name "engine_speaker"
     }
     Group {
       children [
@@ -617,7 +617,7 @@ PROTO vehicle [
         }
         DistanceSensor {
           translation 0.14 0 -0.005
-          name IS name + "_front_center_sensor"
+          name "front_center_sensor"
           lookupTable [
             0 1023 0
             0.6 0 0.04
@@ -628,7 +628,7 @@ PROTO vehicle [
         DistanceSensor {
           translation 0.05 0.04 -0.005
           rotation 0 0 1 1.5708
-          name IS name + "_side_left_sensor"
+          name "side_left_sensor"
           lookupTable [
             0 1023 0
             0.6 0 0.04
@@ -639,7 +639,7 @@ PROTO vehicle [
         DistanceSensor {
           translation 0.05 -0.04 -0.005
           rotation 0 0 1 -1.5708
-          name IS name + "_side_right_sensor"
+          name "side_right_sensor"
           lookupTable [
             0 1023 0
             0.6 0 0.04
@@ -650,7 +650,7 @@ PROTO vehicle [
         DistanceSensor {
           translation 0.08 0 0.04
           rotation 0 -1 0 1.5708022930803
-          name IS name + "_capteur_balise"
+          name "capteur_balise"
           lookupTable [
             0 1023 0
             0.6 0 0.04
@@ -660,7 +660,7 @@ PROTO vehicle [
         LightSensor {
           translation 0.055 -0.01 0.042
           rotation 0 1 0 -1.5708
-          name IS name + "_light_sensor"
+          name "light_sensor"
           occlusion TRUE
         }
         Accelerometer {
@@ -739,7 +739,7 @@ PROTO vehicle [
               ]
             }
           ]
-          name IS name + "_headlights"
+          name "headlights"
           color [
             1 1 0.66667
           ]
@@ -817,7 +817,7 @@ PROTO vehicle [
               ]
             }
           ]
-          name IS name + "_backlights"
+          name "backlights"
           color [
             1 0.2 0
           ]
@@ -849,7 +849,7 @@ PROTO vehicle [
       ]
     }
   ]
-  name IS name
+  name "vehicle"
   model "Altino"
   boundingObject Group {
     children [
@@ -887,7 +887,7 @@ PROTO vehicle [
     ]
   }
   radarCrossSection 100
-  controller "controllerVehiculeDriver"
+  controller "controller_Gym"
   customData "0.1 0.08 0.08 0.02 0.02 700 5 E 0.1 1 1 250 150 0.1 0 0.25 3000 1000 2 4 -30 30 none "
   supervisor TRUE
   window "automobile"
