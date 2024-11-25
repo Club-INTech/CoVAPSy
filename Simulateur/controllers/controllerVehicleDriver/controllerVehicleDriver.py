@@ -8,10 +8,9 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from vehicle import Driver
-from controller import Robot
 
 
-class VehicleDriver(Driver, Robot):
+class VehicleDriver(Driver):
     """
     This class is a subclass of the Driver class and is used to control the vehicle.
     It basically receives instructions from the controllerWorldSupervisor and follows them.
@@ -23,7 +22,8 @@ class VehicleDriver(Driver, Robot):
         basicTimeStep = int(self.getBasicTimeStep())
         self.sensorTime = basicTimeStep // 4
 
-        self.car = self.getFromDef(self.getName())
+        # this is needed if we want to communicate through node level fields
+        print("self.getName(): ", self.getName())
 
         #Lidar
         self.lidar = self.getDevice("RpLidarA2")
@@ -56,9 +56,11 @@ class VehicleDriver(Driver, Robot):
 
     #Fonction step de l"environnement GYM
     def step(self):
-        steeringAngle = self.car.getField("steeringAngleInstruction").getSFFloat()
+        #steeringAngle = self.car.getField("steeringAngleInstruction").getSFFloat()
+        steeringAngle = 0
+        print("steeringAngle: ", steeringAngle)
         self.setSteeringAngle(steeringAngle)
-        self.setCruisingSpeed(100)
+        self.setCruisingSpeed(2)
 
         return super().step()
 
@@ -69,6 +71,7 @@ class VehicleDriver(Driver, Robot):
 
 #----------------Programme principal--------------------
 def main():
+    print("VehicleDriver init")
     driver = VehicleDriver()
     driver.run()
 

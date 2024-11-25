@@ -2231,4 +2231,8 @@ DEF WorldSupervisor Robot {
   name "WorldSupervisor"
   controller "controllerWorldSupervisor"
   children []
+  extensionSlot [
+    Emitter {
+    }
+  ]
 }
