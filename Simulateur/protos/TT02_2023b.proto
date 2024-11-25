@@ -21,11 +21,10 @@ PROTO TT02_2023b [
   field SFFloat    lidarDefaultFrequency     12            # Is `Lidar.defaultFrequency`.
   field SFFloat    steeringAngleInstruction  0.0           # Used by the controller to set the steering angle of the car.
   field MFFloat    lidarData                 []            # Used by the controller to get the lidar data.
-  field MFFloat    distanceSensorData [ 0. 0. 0. 0. ]       # Used by the controller to get the distance sensor data.
+  field MFFloat    distanceSensorData [ 0. 0. 0. 0. ]      # Used by the controller to get the distance sensor data.
 ]
 {
   Car {
-    supervisor TRUE
     translation IS translation
     rotation IS rotation
     name IS name
@@ -66,7 +65,9 @@ PROTO TT02_2023b [
         yAxis TRUE
         zAxis TRUE
       }
-      Emitter {
+      #Emitter {
+      #}
+      Receiver {
       }
       Speaker {
         translation 0.257 0 0
@@ -196,47 +197,47 @@ PROTO TT02_2023b [
         }
       }
       DistanceSensor {
-          translation 0.14 0 -0.005
-          name "front_center_sensor"
-          lookupTable [
-            0 1023 0
-            0.6 0 0.04
-          ]
-          type "laser"
-          aperture 0.1
-        }
-        DistanceSensor {
-          translation 0.05 0.04 -0.005
-          rotation 0 0 1 1.5708
-          name "side_left_sensor"
-          lookupTable [
-            0 1023 0
-            0.6 0 0.04
-          ]
-          type "laser"
-          aperture 0.1
-        }
-        DistanceSensor {
-          translation 0.05 -0.04 -0.005
-          rotation 0 0 1 -1.5708
-          name "side_right_sensor"
-          lookupTable [
-            0 1023 0
-            0.6 0 0.04
-          ]
-          type "laser"
-          aperture 0.1
-        }
-        DistanceSensor {
-          translation 0.08 0 0.04
-          rotation 0 -1 0 1.5708022930803
-          name "up_sensor"
-          lookupTable [
-            0 1023 0
-            0.6 0 0.04
-          ]
-          aperture 0.1
-        }
+        translation 0.14 0 -0.005
+        name "front_center_sensor"
+        lookupTable [
+          0 1023 0
+          0.6 0 0.04
+        ]
+        type "laser"
+        aperture 0.1
+      }
+      DistanceSensor {
+        translation 0.05 0.04 -0.005
+        rotation 0 0 1 1.5708
+        name "side_left_sensor"
+        lookupTable [
+          0 1023 0
+          0.6 0 0.04
+        ]
+        type "laser"
+        aperture 0.1
+      }
+      DistanceSensor {
+        translation 0.05 -0.04 -0.005
+        rotation 0 0 1 -1.5708
+        name "side_right_sensor"
+        lookupTable [
+          0 1023 0
+          0.6 0 0.04
+        ]
+        type "laser"
+        aperture 0.1
+      }
+      DistanceSensor {
+        translation 0.08 0 0.04
+        rotation 0 -1 0 1.5708022930803
+        name "up_sensor"
+        lookupTable [
+          0 1023 0
+          0.6 0 0.04
+        ]
+        aperture 0.1
+      }
       Transform {
         translation 0.127 0 -0.02
         rotation 0 0 1 0

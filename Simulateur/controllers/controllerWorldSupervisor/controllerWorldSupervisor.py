@@ -6,24 +6,36 @@ import time
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common.vec_env import SubprocVecEnv
+from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv
+from stable_baselines3.common.env_util import make_vec_env
 
 from controller import Supervisor
 
+S = Supervisor()
 
 class WebotsGymEnvironment(gym.Env):
+    """
+    One environment for each vehicle
 
-    def __init__(self, n: int, supervisor: Supervisor):
-        self.supervisor = supervisor
-        self.n = n
-        self.lidar_horizontal_resolution = 512
+    n: index of the vehicle
+    supervisor: the supervisor of the simulation
+    """
+
+    def __init__(self, i: int, lidar_horizontal_resolution: int):
+        print("CALLING __init__ WITH i = ", i)
+        print("trying to get supervisor", flush=True)
+        self.supervisor = S
+        print("supervisor acquired", flush=True)
+        self.i = i
+        self.lidar_horizontal_resolution = lidar_horizontal_resolution
 
         basicTimeStep = int(self.supervisor.getBasicTimeStep())
         self.sensorTime = basicTimeStep // 4
 
         #Paramètre de la voiture (position, etc..)
-        self.vehicles = []
-        self.create_vehicles()
+        print("trying to create car", flush=True)
+
+        self.emitter = self.supervisor.getDevice("emitter")
 
         self.action_space = gym.spaces.Discrete(5) #actions disponibles
         min = np.zeros(self.lidar_horizontal_resolution)
@@ -32,45 +44,13 @@ class WebotsGymEnvironment(gym.Env):
         print(self.observation_space)
         print(self.observation_space.shape)
 
-        self.translation_fields = [self.vehicles[i].getField("translation") for i in range(n)]
-        self.rotation_fields = [self.vehicles[i].getField("rotation") for i in range(n)] # idk why but if this goes before the lidar it will not work
-
-
-    def create_vehicles(self):
-        """
-        copies the default DEF vehicle Robot n_envs times so that they can be controlled independently
-        """
-        # create a group of n vehicles
-        robot = self.supervisor.getFromDef("WorldSupervisor")
-        children_field = robot.getField("children")
-        for i in range(self.n):
-            # looks bad but using triple quotes is even worse
-            proto_string = \
-                f'DEF TT02_{i} TT02_2023b' '{' \
-                f'    translation -1 -2.5 0.04' \
-                f'    name "TT02_{i}"' \
-                f'    controller "controllerVehicleDriver"' \
-                f'    color 0.5 0 0.6' \
-                f'    lidarHorizontalResolution {self.lidar_horizontal_resolution}' \
-                f'   steeringAngleInstruction 0' \
-                f'   lidarData [{self.lidar_horizontal_resolution * ' 0. '}]' \
-                 '}'
-
-            print("Spawning vehicle:")
-            print(proto_string)
-
-            index = children_field.importMFNodeFromString(-1, proto_string)
-            vehicle = children_field.getMFNode(index)
-            self.vehicles.append(vehicle)
+        print("__init__ done")
 
     # returns the lidar data of all vehicles
     def observe(self):
         res =  np.array([
-            [
-                v.getField("lidarData").getMFFloat(j)
-                for j in range(self.lidar_horizontal_resolution)
-            ]
-            for v in self.vehicles
+            self.vehicle.getField("lidarData").getMFFloat(i)
+            for i in range(self.lidar_horizontal_resolution)
         ], dtype=np.float32)
         return res
 
@@ -78,12 +58,14 @@ class WebotsGymEnvironment(gym.Env):
     def reset(self, seed=0):
         #Valeur aléatoire
         # car width: 0.25
-        for i in range(self.n):
-            y = -3.3 + i * 0.25
-            INITIAL_trans = [-1, y, 0.0399538]
-            INITIAL_rot = [-0.304369, -0.952554, -8.76035e-05 , 6.97858e-06]
-            self.translation_fields[i].setSFVec3f(INITIAL_trans)
-            self.rotation_fields[i].setSFRotation(INITIAL_rot)
+        y = -3.2 + self.i * 0.25
+        INITIAL_trans = [-1, y, 0.0399538]
+        INITIAL_rot = [-0.304369, -0.952554, -8.76035e-05 , 6.97858e-06]
+
+        # WARNING: this is not thread safe
+        vehicle = self.supervisor.getFromDef(f"TT02_{self.i}")
+        vehicle.getField("translation").setSFVec3f(INITIAL_trans)
+        vehicle.getField("rotation").setSFRotation(INITIAL_rot)
 
         time.sleep(0.3) #Temps de pause après réinitilialisation
 
@@ -95,9 +77,11 @@ class WebotsGymEnvironment(gym.Env):
 
     # step function of the gym environment
     def step(self, action):
-        for vehicle in self.vehicles:
-            vehicle.getField("steeringAngleInstruction").setSFFloat([-.3, -.1, 0, .1, .3][action])
-            # we should add a beacon sensor pointing upwards to detect the beacon
+        #print("Action: ", action)
+        print("Steering angle: ", [-0.3, -0.1, 0.0, 0.1, 0.3][action])
+        steeringAngle = [-0.3, -0.1, 0.0, 0.1, 0.3][action]
+        self.vehicle.getField("steeringAngleInstruction").setSFFloat(steeringAngle)
+        # we should add a beacon sensor pointing upwards to detect the beacon
 
         obs = self.observe()
 
@@ -105,7 +89,7 @@ class WebotsGymEnvironment(gym.Env):
         done = False
         truncated = False
 
-        front, left, right, up = [self.vehicles[0].getField("distanceSensorData").getMFFloat(i) for i in range(4)]
+        front, left, right, up = [self.vehicle.getField("distanceSensorData").getMFFloat(i) for i in range(4)]
 
         if front >= 900 and not(done):
             print("Collision avant")
@@ -136,11 +120,54 @@ class WebotsGymEnvironment(gym.Env):
         pass
 
 
+def create_vehicles(n_envs: int, lidar_horizontal_resolution: int):
+    root = S.getRoot()
+    children_field = root.getField("children")
+
+    for i in range(n_envs):
+        proto_string = \
+            f'DEF TT02_{i} TT02_2023b' '{' \
+            f'    translation -1 -2.5 0.04' \
+            f'    name "TT02_{i}"' \
+            f'    controller "controllerVehicleDriver"' \
+            f'    color 0.5 0 0.6' \
+            f'    lidarHorizontalResolution {lidar_horizontal_resolution}' \
+            f'    steeringAngleInstruction 0' \
+            f'    lidarData [{lidar_horizontal_resolution * ' 0. '}]' \
+                '}'
+
+        print("Spawning vehicle:", flush=True)
+        print(proto_string, flush=True)
+
+        index = children_field.importMFNodeFromString(-1, proto_string)
+        print("Vehicle spawned")
+
 #----------------Programme principal--------------------
 def main():
-    n = 1 # number of vehicles
-    env = WebotsGymEnvironment(n)
-    check_env(env)
+    n_envs = 1
+    lidar_horizontal_resolution = 512
+    print("Creating environment")
+    create_vehicles(n_envs, lidar_horizontal_resolution)
+
+
+    # global i
+    # i = -1
+    # def f():
+    #     global i
+    #     i += 1
+    #     return WebotsGymEnvironment(i, lidar_horizontal_resolution)
+    # env = make_vec_env(
+    #     f,
+    #     n_envs=n_envs,
+    #     vec_env_cls=SubprocVecEnv
+    # )
+
+
+    env = DummyVecEnv([lambda i=i: WebotsGymEnvironment(i, lidar_horizontal_resolution) for i in range(n_envs)])
+
+
+    print("Environment created")
+    # check_env(env)
 
     logdir = "./Webots_tb/"
     #-- , tensorboard_log = logdir -- , tb_log_name = "PPO_voiture_webots"
