@@ -2230,9 +2230,12 @@ DEF WorldSupervisor Robot {
   supervisor TRUE
   name "WorldSupervisor"
   controller "controllerWorldSupervisor"
-  children []
-  extensionSlot [
+  children [
     Emitter {
+      name "supervisor_emitter"
+    }
+    Receiver {
+      name "supervisor_receiver"
     }
   ]
 }

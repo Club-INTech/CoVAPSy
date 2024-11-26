@@ -3,6 +3,8 @@ import numpy as np
 import random
 import gymnasium as gym
 import time
+from threading import Lock
+from torch.cuda import is_available
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
@@ -21,7 +23,7 @@ class WebotsGymEnvironment(gym.Env):
     supervisor: the supervisor of the simulation
     """
 
-    def __init__(self, i: int, lidar_horizontal_resolution: int):
+    def __init__(self, i: int, lidar_horizontal_resolution: int, emitter_lock: Lock, receiver_lock: Lock, reset_lock: Lock):
         print("CALLING __init__ WITH i = ", i)
         print("trying to get supervisor", flush=True)
         self.supervisor = S
@@ -32,14 +34,25 @@ class WebotsGymEnvironment(gym.Env):
         basicTimeStep = int(self.supervisor.getBasicTimeStep())
         self.sensorTime = basicTimeStep // 4
 
-        #Paramètre de la voiture (position, etc..)
-        print("trying to create car", flush=True)
+        self.reset_lock = reset_lock
 
-        self.emitter = self.supervisor.getDevice("emitter")
+        # Emitters
+        self.emitter = self.supervisor.getDevice("supervisor_emitter")
+        self.emitter_lock = emitter_lock
+        self.emitter_channel = 2 * self.i
+
+        # Receivers
+        self.receiver = self.supervisor.getDevice("supervisor_receiver")
+        self.receiver.enable(self.sensorTime)
+        self.receiver_lock = receiver_lock
+        self.receiver_channel = 2 * self.i + 1
+
+        # Last data received from the car
+        self.last_data = np.zeros(self.lidar_horizontal_resolution + 4, dtype=np.float32)
 
         self.action_space = gym.spaces.Discrete(5) #actions disponibles
-        min = np.zeros(self.lidar_horizontal_resolution)
-        max = np.ones(self.lidar_horizontal_resolution)
+        min = np.zeros(4 + self.lidar_horizontal_resolution)
+        max = np.ones(4 + self.lidar_horizontal_resolution)
         self.observation_space = gym.spaces.Box(min, max, dtype=np.float32) #Etat venant du LIDAR
         print(self.observation_space)
         print(self.observation_space.shape)
@@ -48,11 +61,15 @@ class WebotsGymEnvironment(gym.Env):
 
     # returns the lidar data of all vehicles
     def observe(self):
-        res =  np.array([
-            self.vehicle.getField("lidarData").getMFFloat(i)
-            for i in range(self.lidar_horizontal_resolution)
-        ], dtype=np.float32)
-        return res
+        # gets from Receiver
+        with self.receiver_lock:
+            if self.receiver.getQueueLength() > 0:
+                self.receiver.setChannel(self.receiver_channel)
+
+                while self.receiver.getQueueLength() > 1:
+                    self.receiver.nextPacket()
+
+        return self.last_data
 
     # reset the gym environment
     def reset(self, seed=0):
@@ -63,14 +80,14 @@ class WebotsGymEnvironment(gym.Env):
         INITIAL_rot = [-0.304369, -0.952554, -8.76035e-05 , 6.97858e-06]
 
         # WARNING: this is not thread safe
-        vehicle = self.supervisor.getFromDef(f"TT02_{self.i}")
-        vehicle.getField("translation").setSFVec3f(INITIAL_trans)
-        vehicle.getField("rotation").setSFRotation(INITIAL_rot)
+        with self.reset_lock:
+            vehicle = self.supervisor.getFromDef(f"TT02_{self.i}")
+            vehicle.getField("translation").setSFVec3f(INITIAL_trans)
+            vehicle.getField("rotation").setSFRotation(INITIAL_rot)
 
         time.sleep(0.3) #Temps de pause après réinitilialisation
 
         obs = self.observe()
-        print(obs.shape)
         #super().step()
         info = {}
         return obs, info
@@ -78,18 +95,21 @@ class WebotsGymEnvironment(gym.Env):
     # step function of the gym environment
     def step(self, action):
         #print("Action: ", action)
-        print("Steering angle: ", [-0.3, -0.1, 0.0, 0.1, 0.3][action])
         steeringAngle = [-0.3, -0.1, 0.0, 0.1, 0.3][action]
-        self.vehicle.getField("steeringAngleInstruction").setSFFloat(steeringAngle)
+        with self.emitter_lock:
+            self.emitter.setChannel(self.emitter_channel)
+            self.emitter.send([steeringAngle])
+
         # we should add a beacon sensor pointing upwards to detect the beacon
 
         obs = self.observe()
+        distance_data, _ = obs[:4], obs[4:]
 
         reward = 0
         done = False
         truncated = False
 
-        front, left, right, up = [self.vehicle.getField("distanceSensorData").getMFFloat(i) for i in range(4)]
+        front, left, right, up = distance_data
 
         if front >= 900 and not(done):
             print("Collision avant")
@@ -132,9 +152,7 @@ def create_vehicles(n_envs: int, lidar_horizontal_resolution: int):
             f'    controller "controllerVehicleDriver"' \
             f'    color 0.5 0 0.6' \
             f'    lidarHorizontalResolution {lidar_horizontal_resolution}' \
-            f'    steeringAngleInstruction 0' \
-            f'    lidarData [{lidar_horizontal_resolution * ' 0. '}]' \
-                '}'
+            '}'
 
         print("Spawning vehicle:", flush=True)
         print(proto_string, flush=True)
@@ -144,7 +162,7 @@ def create_vehicles(n_envs: int, lidar_horizontal_resolution: int):
 
 #----------------Programme principal--------------------
 def main():
-    n_envs = 1
+    n_envs = 2
     lidar_horizontal_resolution = 512
     print("Creating environment")
     create_vehicles(n_envs, lidar_horizontal_resolution)
@@ -162,8 +180,10 @@ def main():
     #     vec_env_cls=SubprocVecEnv
     # )
 
-
-    env = DummyVecEnv([lambda i=i: WebotsGymEnvironment(i, lidar_horizontal_resolution) for i in range(n_envs)])
+    emitter_lock = Lock()
+    receiver_lock = Lock()
+    reset_lock = Lock()
+    env = DummyVecEnv([lambda i=i: WebotsGymEnvironment(i, lidar_horizontal_resolution, emitter_lock, receiver_lock, reset_lock) for i in range(n_envs)])
 
 
     print("Environment created")
@@ -179,7 +199,7 @@ def main():
         batch_size=32,
         learning_rate=3e-3,
         verbose=1,
-        device="cuda:0"
+        device="cuda:0" if is_available() else "cpu"
     )
 
     #Entrainnement

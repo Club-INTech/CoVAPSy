@@ -19,9 +19,9 @@ PROTO TT02_2023b [
   field SFFloat    lidarNoise_OverMaxRange   0.000833      # Is `Lidar.noise`.
   field SFFloat    lidarResolution           0.01          # Is `Lidar.resolution`.
   field SFFloat    lidarDefaultFrequency     12            # Is `Lidar.defaultFrequency`.
-  field SFFloat    steeringAngleInstruction  0.0           # Used by the controller to set the steering angle of the car.
-  field MFFloat    lidarData                 []            # Used by the controller to get the lidar data.
-  field MFFloat    distanceSensorData [ 0. 0. 0. 0. ]      # Used by the controller to get the distance sensor data.
+  #field SFFloat    steeringAngleInstruction  0.0           # Used by the controller to set the steering angle of the car.
+  #field MFFloat    lidarData                 []            # Used by the controller to get the lidar data.
+  #field MFFloat    distanceSensorData [ 0. 0. 0. 0. ]      # Used by the controller to get the distance sensor data.
 ]
 {
   Car {
@@ -65,9 +65,11 @@ PROTO TT02_2023b [
         yAxis TRUE
         zAxis TRUE
       }
-      #Emitter {
-      #}
+      Emitter {
+        name "TT02_emitter"
+      }
       Receiver {
+        name "TT02_receiver"
       }
       Speaker {
         translation 0.257 0 0
