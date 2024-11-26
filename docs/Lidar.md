@@ -1,3 +1,7 @@
+#Lidar
+
+## UST-10lx basics
+
 <img src="../img/UST-10lx.jpg" alt="an image showing a UST-10lx with an orange top. We can read Hokuyo Smart Urg underneath" title="A UST-10lx Lidar" width="200" align="right"/>
 
 
@@ -17,5 +21,30 @@ Il faut donc choisir une adresse ip dans le bon sous-resaux. Nous avons arbitrai
 192.168.0.11
 ```
 
-# The library
+## Using HokuyoReader class
+
+Create the class instance with
+``` python
+sensor = HokuyoReader(IP, PORT) 
+```
+
+use `HokuyoReader.stop()` to get rid of any leftover data or problems from an improper shutdown and start mesuring with `HokuyoReader.startContinuous(0, 1080)` with 0 and 1080 the steps that are mesured
+
+```pyhton
+sensor.stop()
+sensor.startContinuous(0, 1080)
+```
+
+Distances can be retrived as a numpy array with the `HokuyoReader.rDistance()` (r standing for radial)
+
+```python
+distance_array=sensor.rDistance()
+```
+
+Use `HokuyoReader.stop()` to gracefully shutdown the lidar
+
+```pyhton
+sensor.stop()
+
+```
 
