@@ -125,6 +125,10 @@ Images are impossible to scale or rendre next to text. Using the HTML `<img>` ta
 
 <img src="../img/favicon.png" alt="A square version of the autotech logo. It is used as a favicon for the site" title="A UST-10lx Lidar" width="200" align="right"/>
 
+!!! warning
+    due diffence in how the HTML and markdown are compiled, there are diffrent paths when adding images in html and markdown
+
+
 <div style="clear: both;"></div> <!-- ensure no overlap with next element -->
 
 ### Admonitions
