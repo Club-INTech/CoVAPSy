@@ -3,12 +3,13 @@ site_name: AutoTech's Docs
 nav:
   - Home: index.md
   - Lidar.md
-  - Docs: building_docs.md
+  - How to create documentation: building_docs.md
   - Regle de la course: https://ajuton-ens.github.io/CourseVoituresAutonomesSaclay/
 
 theme: 
+  title: AutoTech's Docs
   name: readthedocs
-  logo: img/autotech_logo.png
+  logo: img/autotech_logo.jpeg
   #locale: fr # does not work idk why -Arnaud
 
 repo_url: https://github.com/Club-INTech/CoVAPSy/
@@ -22,3 +23,6 @@ site_description: "AutoTech est un projet du Club de robotique INTech de Telecom
 #   /requirements.txt  # Top-level "docs/requirements.txt".
 #   *.py               # Any file with this extension anywhere.
 #   !/foo/example.py   # But keep this particular file.
+
+markdown_extensions:
+  - admonition # This is a plugin for adding colored boxes for notes, warnings, etc.
