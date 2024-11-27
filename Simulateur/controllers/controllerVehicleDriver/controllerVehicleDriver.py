@@ -61,24 +61,27 @@ class VehicleDriver(Driver):
     def step(self):
         # sends observation to the supervisor
         self.emitter.send(self.observe().tobytes())
-
         if self.receiver.getQueueLength() > 0:
             while self.receiver.getQueueLength() > 1:
                 self.receiver.nextPacket()
             self.last_data = np.frombuffer(self.receiver.getBytes(), dtype=np.float32)[0]
-
         steeringAngle = self.last_data
+
         #print(f"steeringAngle({self.i}): ", steeringAngle)
+
         self.setSteeringAngle(steeringAngle)
         self.setCruisingSpeed(2)
 
         return super().step()
 
     def run(self):
-        print("VehicleDriver running for the first time...")
-        time.sleep(.1)
+        # this call is just there to make sure at least one step
+        # is done in the entire simulation before we call lidar.getRangeImage()
+        # otherwise it will crash the controller with the message:
+        # WARNING: 'controllerVehicleDriver' controller crashed.
+        # WARNING: controllerVehicleDriver: The process crashed some time after starting successfully.
+        super().step()
         while self.step() != -1:
-            print("VehicleDriver running...")
             pass
 
 
