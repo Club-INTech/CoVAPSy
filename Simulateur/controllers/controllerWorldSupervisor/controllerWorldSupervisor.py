@@ -154,7 +154,7 @@ def create_vehicles(n_envs: int, lidar_horizontal_resolution: int):
 
 #----------------Programme principal--------------------
 def main():
-    n_envs = 1
+    n_envs = 7
     lidar_horizontal_resolution = 512
     print("Creating environment")
     create_vehicles(n_envs, lidar_horizontal_resolution)
@@ -187,7 +187,7 @@ def main():
     #Définition modèle avec paramètre par défaut
     model = PPO("MlpPolicy", env,
         n_steps=2048,
-        n_epochs=10,
+        n_epochs=1, # doesn't make sense here
         batch_size=32,
         learning_rate=3e-3,
         verbose=1,
