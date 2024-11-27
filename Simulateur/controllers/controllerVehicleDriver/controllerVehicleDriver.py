@@ -1,11 +1,5 @@
 import numpy as np
-import random
-import gymnasium as gym
 import time
-
-from stable_baselines3 import PPO
-from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from vehicle import Driver
 
@@ -74,14 +68,17 @@ class VehicleDriver(Driver):
             self.last_data = np.frombuffer(self.receiver.getBytes(), dtype=np.float32)[0]
 
         steeringAngle = self.last_data
-        print(f"steeringAngle({self.i}): ", steeringAngle)
+        #print(f"steeringAngle({self.i}): ", steeringAngle)
         self.setSteeringAngle(steeringAngle)
         self.setCruisingSpeed(2)
 
         return super().step()
 
     def run(self):
+        print("VehicleDriver running for the first time...")
+        time.sleep(.1)
         while self.step() != -1:
+            print("VehicleDriver running...")
             pass
 
 
@@ -89,6 +86,7 @@ class VehicleDriver(Driver):
 def main():
     print("VehicleDriver init")
     driver = VehicleDriver()
+    print("VehicleDriver init done")
     driver.run()
 
 
