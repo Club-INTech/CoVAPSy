@@ -5,17 +5,17 @@ on:
 jobs:
   my_job:
     name: deploy to staging
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # create a VM to run the workflow
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/checkout@v2  # syncs your repository with the workflow's filesystem
+      - name: Set up Python  
+        uses: actions/setup-python@v2 # sets up a Python environment 
         with:
           python-version: '3.x'
-      - name: Install MkDocs
-        run: pip install mkdocs mkdocs-material
+      - name: Install MkDocs   
+        run: pip install mkdocs 
       - name: Deploy with MkDocs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: mkdocs gh-deploy #--force
+        run: mkdocs gh-deploy --force
