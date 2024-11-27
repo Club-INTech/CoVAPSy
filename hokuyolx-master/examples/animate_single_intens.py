@@ -1,6 +1,7 @@
 '''Animates distances using single measurment mode'''
 from hokuyolx import HokuyoLX
 import matplotlib.pyplot as plt
+import numpy as np
 
 DMAX = 10000
 IMIN = 300.
