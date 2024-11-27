@@ -9,7 +9,6 @@ from torch.cuda import is_available
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv
-from stable_baselines3.common.env_util import make_vec_env
 
 from controller import Supervisor
 
@@ -24,10 +23,7 @@ class WebotsGymEnvironment(gym.Env):
     """
 
     def __init__(self, i: int, lidar_horizontal_resolution: int, emitter_lock: Lock, receiver_lock: Lock, reset_lock: Lock):
-        print("CALLING __init__ WITH i = ", i)
-        print("trying to get supervisor", flush=True)
         self.supervisor = S
-        print("supervisor acquired", flush=True)
         self.i = i
         self.lidar_horizontal_resolution = lidar_horizontal_resolution
 
@@ -57,8 +53,6 @@ class WebotsGymEnvironment(gym.Env):
         print(self.observation_space)
         print(self.observation_space.shape)
 
-        print("__init__ done")
-
     # returns the lidar data of all vehicles
     def observe(self):
         # gets from Receiver
@@ -85,8 +79,6 @@ class WebotsGymEnvironment(gym.Env):
             vehicle.getField("translation").setSFVec3f(INITIAL_trans)
             vehicle.getField("rotation").setSFRotation(INITIAL_rot)
 
-        time.sleep(0.3) #Temps de pause après réinitilialisation
-
         obs = self.observe()
         #super().step()
         info = {}
@@ -98,7 +90,7 @@ class WebotsGymEnvironment(gym.Env):
         steeringAngle = [-0.3, -0.1, 0.0, 0.1, 0.3][action]
         with self.emitter_lock:
             self.emitter.setChannel(self.emitter_channel)
-            self.emitter.send([steeringAngle])
+            self.emitter.send(np.array([steeringAngle], dtype=np.float32).tobytes())
 
         # we should add a beacon sensor pointing upwards to detect the beacon
 
@@ -162,7 +154,7 @@ def create_vehicles(n_envs: int, lidar_horizontal_resolution: int):
 
 #----------------Programme principal--------------------
 def main():
-    n_envs = 2
+    n_envs = 1
     lidar_horizontal_resolution = 512
     print("Creating environment")
     create_vehicles(n_envs, lidar_horizontal_resolution)
