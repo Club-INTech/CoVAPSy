@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>How to create documentation - AutoTech's Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "How to create documentation";
+        var mkdocs_page_input_path = "building_docs.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/autotech_logo.jpeg" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../Lidar/">Lidar</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">How to create documentation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#what-is-markdown">What is Markdown</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#basic-syntax">Basic Syntax</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#bold-and-italics">Bold and Italics</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#headings">Headings</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#links">Links</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#images">Images</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#code-blocks">Code Blocks</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#advanced-syntax">Advanced Syntax</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#comments">Comments</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#images-in-html">Images in HTML</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#admonitions">Admonitions</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#using-mkdocs">Using MkDocs</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#commands">Commands</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#project-layout">Project Layout</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#using-github-pages">Using GitHub Pages</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="https://ajuton-ens.github.io/CourseVoituresAutonomesSaclay/">Regle de la course</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">AutoTech's Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">How to create documentation</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Club-INTech/CoVAPSy/edit/master/docs/building_docs.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="how-to-use-markdown-and-mkdocs">How to use Markdown and MkDocs</h1>
+<p>This documentation is built using Markdown and MkDocs. This page is a guide to get you started contributing.</p>
+<h2 id="what-is-markdown">What is Markdown</h2>
+<blockquote>
+<p>Markdown is a lightweight markup language used to format text in a simple and readable way. It uses plain-text syntax to define elements like headings, lists, links, and emphasis (e.g., <strong>bold</strong>, <em>italic</em>). Markdown is commonly used in documentation, blogging platforms, and version control systems like GitHub because it is easy to write and converts seamlessly into HTML for web display. -ChatGPT</p>
+</blockquote>
+<p>Markdown files are often recognizable by their <code>.md</code> and rarely <code>.markdown</code> file extensions.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<h3 id="bold-and-italics">Bold and Italics</h3>
+<p>To make bold text, surround your text with double asterisks:</p>
+<table>
+    <tr>
+        <td>**This text will be bolded**</td>
+        <td><b>This text will be bolded</b></td>
+    </tr>
+</table>
+
+<p>For italics, use a single asterisk:</p>
+<table>
+    <tr>
+        <td>*This text will be italicized*</td>
+        <td><i>This text will be italicized</i></td>
+    </tr>
+</table>
+
+<p>These can be combined:</p>
+<table>
+    <tr>
+        <td>***This text will be bold and italic***</td>
+        <td><b><i>This text will be bold and italic</i></b></td>
+    </tr>
+</table>
+
+<h3 id="headings">Headings</h3>
+<p>Headings are denoted using <code>#</code> at the beginning of a line. The number of <code>#</code> determines the depth of the header:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Render</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td># Heading 1</td>
+<td><h1> Heading 1  </h1></td>
+</tr>
+<tr>
+<td>## Heading 2</td>
+<td><h2> Heading 2  </h2></td>
+</tr>
+<tr>
+<td>### Heading 3</td>
+<td><h3> Heading 3  </h3></td>
+</tr>
+<tr>
+<td>#### Heading 4</td>
+<td><h4> Heading 4  </h4></td>
+</tr>
+<tr>
+<td>##### Heading 5</td>
+<td><h5> Heading 5  </h5></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>A space is required for a heading to work. </p>
+<ul>
+<li>#Heading 1 ❌ </li>
+<li>## Heading 1 ✔️</li>
+</ul>
+</div>
+<h3 id="links">Links</h3>
+<p>To add links, use the following syntax:</p>
+<p>[The text that will be displayed](The link to follow)</p>
+<p>[A link to example.org](https://example.org/)</p>
+<p><a href="https://example.org/">A link to example.org</a></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These can be used for internal links as well. For example, we can link this section with [Links](#Links) or [Links](/building_docs/#Links): <a href="#links">Links</a>.</p>
+<p>The second method can be generalized to reach any page or header on the website.</p>
+</div>
+<h3 id="images">Images</h3>
+<p>The syntax to add images is almost the same as links. Alt text is the text used by accessibility readers. It should therefore be descriptive rather than a title.</p>
+<p>![Alt text](path/to/image.png)</p>
+<p>![A square version of the autotech logo. It is used as a favicon for the site](img/favicon.png)</p>
+<p><img alt="A square version of the autotech logo. It is used as a favicon for the site" src="../img/favicon.png" /></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See <a href="#images-in-html">Images in HTML</a> for more fine-grain control of images.</p>
+</div>
+<h3 id="code-blocks">Code Blocks</h3>
+<p>Code blocks in Markdown can be created using triple backticks (```). You can specify the language for syntax highlighting by adding the language name after the opening backticks. Here is an example of a code block in Python:</p>
+<p>```python</p>
+<p>def hello_world():</p>
+<pre><code>print("Hello, world!")
+</code></pre>
+<p>```</p>
+<pre><code class="language-python">def hello_world():
+    print(&quot;Hello, world!&quot;)
+</code></pre>
+<p>You can also create inline code by wrapping text in single backticks (`). For example, `print("Hello, world!")` renders as <code>print("Hello, world!")</code>.</p>
+<h2 id="advanced-syntax">Advanced Syntax</h2>
+<p>Markdown's strength is in the simplicity of writing, but that sometimes comes back to bite us when trying to do something a little more complicated. Luckily, most Markdown renderers accept some HTML in Markdown files. This is the case with MkDocs and GitHub. <strong>HTML should only be used as necessary.</strong></p>
+<h3 id="comments">Comments</h3>
+<p>In Markdown, there is no built-in syntax for comments. However, you can use HTML comments to add notes or comments that will not be rendered in the final output. Here is an example:</p>
+<pre><code>&lt;!-- This is a comment and will not be rendered in the final output --&gt;
+</code></pre>
+<h3 id="images-in-html">Images in HTML</h3>
+<p>Images are impossible to scale or render next to text. Using the HTML <code>&lt;img&gt;</code> tag, it is possible to customize your image's behavior. Here is an example of an image that is scaled and displayed to the right. Keep in mind that images <strong>can't</strong> be rendered above the position of the <code>&lt;img&gt;</code> tag:</p>
+<pre><code>&lt;img src=&quot;../img/favicon.png&quot; alt=&quot;A square version of the autotech logo. It is used as a favicon for the site&quot; title=&quot;A UST-10lx Lidar&quot; width=&quot;200&quot; align=&quot;right&quot;/&gt;
+</code></pre>
+<p><img src="../img/favicon.png" alt="A square version of the autotech logo. It is used as a favicon for the site" title="A UST-10lx Lidar" width="200" align="right"/></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Due to differences in how the HTML and Markdown are compiled, there are different paths when adding images in HTML and Markdown.</p>
+</div>
+<div style="clear: both;"></div>
+<h3 id="admonitions">Admonitions</h3>
+<p>Admonitions are a way to highlight important information in your documentation. MkDocs supports several types of admonitions, such as notes, warnings/caution, danger, and tips/hint. Here is an example of how to use them:</p>
+<pre><code>!!! note
+    This is a note admonition.
+</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a note admonition.</p>
+</div>
+<pre><code>!!! warning
+    This is a warning admonition.
+</code></pre>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is a warning admonition.</p>
+</div>
+<h2 id="using-mkdocs">Using MkDocs</h2>
+<p>For full documentation, visit <a href="https://www.mkdocs.org">mkdocs.org</a>.</p>
+<h3 id="commands">Commands</h3>
+<ul>
+<li><code>mkdocs serve</code> - Start the live-reloading docs server. It should now be accessible at <a href="http://127.0.0.1:8000/">127.0.0.1:8000</a> on <strong><em>your machine</em></strong>.</li>
+<li><code>mkdocs gh-deploy</code> - Build the documentation site on the gh-pages branch of your repository.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On the <a href="https://github.com/Club-INTech/CoVAPSy">Club-INTech/CoVAPSy</a> repository, <code>mkdocs gh-deploy</code> is automatically called upon push to the main branch. It can still be manually called when on another branch, but <a href="https://github.com/Club-INTech/CoVAPSy/tree/gh-pages">gh-pages</a> will be overwritten by any push on main.</p>
+</div>
+<h3 id="project-layout">Project Layout</h3>
+<pre><code>mkdocs.yml    ## The configuration file.
+docs/
+    index.md  ## The documentation homepage.
+    ...       ## Other markdown pages, images, and other files.
+    img/
+        favicon.png ## The icon that appears on the browser tab.
+        ... other images
+</code></pre>
+<h3 id="using-github-pages">Using GitHub Pages</h3>
+<p>Navigate to the repository, then to settings/pages. Using the drop-down menus, select "Deploy from branch" for source and "gh-pages" and "/root" for branch.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You may have to run <code>mkdocs gh-deploy</code> for the gh-pages branch to show. See <a href="#commands">Commands</a>.</p>
+</div>
+<!-- ensure no overlap with next element -->
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../Lidar/" class="btn btn-neutral float-left" title="Lidar"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Club-INTech/CoVAPSy/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../Lidar/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
