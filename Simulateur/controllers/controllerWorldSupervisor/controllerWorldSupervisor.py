@@ -26,6 +26,7 @@ class WebotsGymEnvironment(gym.Env):
         self.supervisor = S
         self.i = i
         self.lidar_horizontal_resolution = lidar_horizontal_resolution
+        self.n_sensors = 1
 
         basicTimeStep = int(self.supervisor.getBasicTimeStep())
         self.sensorTime = basicTimeStep // 4
@@ -44,11 +45,11 @@ class WebotsGymEnvironment(gym.Env):
         self.receiver_channel = 2 * self.i + 1
 
         # Last data received from the car
-        self.last_data = np.zeros(self.lidar_horizontal_resolution + 4, dtype=np.float32)
+        self.last_data = np.zeros(self.lidar_horizontal_resolution + self.n_sensors, dtype=np.float32)
 
         self.action_space = gym.spaces.Discrete(5) #actions disponibles
-        min = np.zeros(4 + self.lidar_horizontal_resolution)
-        max = np.ones(4 + self.lidar_horizontal_resolution)
+        min = np.zeros(self.n_sensors + self.lidar_horizontal_resolution)
+        max = np.ones(self.n_sensors + self.lidar_horizontal_resolution)
         self.observation_space = gym.spaces.Box(min, max, dtype=np.float32) #Etat venant du LIDAR
         print(self.observation_space)
         print(self.observation_space.shape)
@@ -95,24 +96,17 @@ class WebotsGymEnvironment(gym.Env):
         # we should add a beacon sensor pointing upwards to detect the beacon
 
         obs = self.observe()
-        distance_data, _ = obs[:4], obs[4:]
+        sensor_data = obs[:self.n_sensors]
 
         reward = 0
         done = False
         truncated = False
 
-        front, left, right, up = distance_data
+        b_collided, = distance_data
+        up = 0
 
-        if front >= 900 and not(done):
+        if b_collided and not(done):
             print("Collision avant")
-            reward = -100
-            done = True
-        elif ((front >= 854 and left >= 896) or (front >= 696 and left >= 910) or left >= 937) and not(done):
-            print("Collision gauche")
-            reward = -100
-            done = True
-        elif ((front >= 850 and right >= 893) or (front >= 584 and right >= 910) or right >= 961) and not(done):
-            print("Collision droite")
             reward = -100
             done = True
         elif up > 700:
@@ -139,7 +133,6 @@ def create_vehicles(n_envs: int, lidar_horizontal_resolution: int):
     for i in range(n_envs):
         proto_string = \
             f'DEF TT02_{i} TT02_2023b' '{' \
-            f'    translation -1 -2.5 0.04' \
             f'    name "TT02_{i}"' \
             f'    controller "controllerVehicleDriver"' \
             f'    color 0.5 0 0.6' \
@@ -154,7 +147,7 @@ def create_vehicles(n_envs: int, lidar_horizontal_resolution: int):
 
 #----------------Programme principal--------------------
 def main():
-    n_envs = 7
+    n_envs = 1
     lidar_horizontal_resolution = 512
     print("Creating environment")
     create_vehicles(n_envs, lidar_horizontal_resolution)

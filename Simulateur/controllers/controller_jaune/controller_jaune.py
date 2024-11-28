@@ -18,7 +18,7 @@ sensorTimeStep = 4 * basicTimeStep
 #Lidar
 lidar = Lidar("RpLidarA2")
 lidar.enable(sensorTimeStep)
-lidar.enablePointCloud() 
+lidar.enablePointCloud()
 
 #clavier
 keyboard = driver.getKeyboard()

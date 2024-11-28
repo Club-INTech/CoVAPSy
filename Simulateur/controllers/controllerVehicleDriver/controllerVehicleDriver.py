@@ -24,17 +24,9 @@ class VehicleDriver(Driver):
         self.lidar.enable(self.sensorTime)
         self.lidar.enablePointCloud()
 
-        # Distance sensors
-        self.front_center_sensor = self.getDevice("front_center_sensor")
-        self.side_left_sensor = self.getDevice("side_left_sensor")
-        self.side_right_sensor = self.getDevice("side_right_sensor")
-        self.front_center_sensor.enable(self.sensorTime)
-        self.side_left_sensor.enable(self.sensorTime)
-        self.side_right_sensor.enable(self.sensorTime)
-
         # Checkpoint sensor
-        self.up_sensor = self.getDevice("up_sensor")
-        self.up_sensor.enable(self.sensorTime)
+        self.touch_sensor = self.getDevice("touch_sensor")
+        self.touch_sensor.enable(self.sensorTime)
 
         # Communication
         self.receiver = self.getDevice("TT02_receiver")
@@ -51,11 +43,18 @@ class VehicleDriver(Driver):
     #Vérification de l"état de la voiture
     def observe(self):
         try:
-            #Division par 10 pour que la valeur soient entre 0 et 1
-            return np.array(self.lidar.getRangeImage(), dtype=np.float32)/10
-        except: #En cas de non retour lidar
+            # Division par 10 pour que la valeur soient entre 0 et 1
+            return np.concatenate([
+                [np.array(self.touch_sensor.getValue(), dtype=np.float32)],
+                np.array(self.lidar.getRangeImage(), dtype=np.float32)/10
+            ])
+        except:
+            #En cas de non retour lidar
             print("Pas de retour du lidar")
-            return np.zeros(self.lidar.getNumberOfPoints(), dtype=np.float32)
+            return np.concatenate([
+                np.array(self.touch_sensor.getValue(), dtype=np.float32),
+                np.zeros(self.lidar.getNumberOfPoints(), dtype=np.float32)
+            ])
 
     #Fonction step de l"environnement GYM
     def step(self):
