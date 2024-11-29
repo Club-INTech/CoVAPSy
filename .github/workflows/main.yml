@@ -14,9 +14,9 @@ jobs:
         uses: actions/setup-python@v2 # sets up a Python environment 
         with:
           python-version: '3.x'
-      - name: Install MkDocs   
+      - name: Install MkDocs   # installs MkDocs
         run: pip install mkdocs 
-      - name: Deploy with MkDocs
+      - name: Deploy with MkDocs # deploys the site using MkDocs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # allows the workflow to access the repository otherwise it will fail due to laking write permissions
         run: mkdocs gh-deploy --force
