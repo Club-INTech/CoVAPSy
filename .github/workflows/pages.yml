@@ -22,6 +22,11 @@ jobs:
         run: pip install mkdocs
       - name: Build with MkDocs
         run: mkdocs build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: github-pages
+          path: site
 
   deploy:
     environment:
