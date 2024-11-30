@@ -7,21 +7,29 @@ permissions:
 concurrency:
   group: "pages"
   cancel-in-progress: true
+
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install MkDocs
+        run: pip install mkdocs
+      - name: Build with MkDocs
+        run: mkdocs build
+
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python
-        with:
-          python-version: 3.x
-      - run: pip install mkdocs
-      - run: mkdocs build
-      - uses: actions/upload-pages-artifact
-        with:
-          path: 'site'
-      - id: deployment
-        uses: actions/deploy-pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
