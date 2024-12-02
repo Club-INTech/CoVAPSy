@@ -32,7 +32,7 @@ class VehicleDriver(Driver):
         self.receiver = self.getDevice("TT02_receiver")
         print(f"{self.receiver=}")
         self.receiver.enable(self.sensorTime)
-        self.receiver.setChannel(2 * self.i) # corresponds the the supervisor's emitter channel
+        self.receiver.setChannel(2 * self.i) # corwe ponds the the supervisor's emitter channel
         self.emitter = self.getDevice("TT02_emitter")
         print(f"{self.emitter=}")
         self.emitter.setChannel(2 * self.i + 1) # corresponds the the supervisor's receiver channel
@@ -42,11 +42,17 @@ class VehicleDriver(Driver):
 
     #Vérification de l"état de la voiture
     def observe(self):
+        # print(
+        #     f"data sent from car     {self.i}",
+        #     np.concatenate([
+        #         [np.array(self.touch_sensor.getValue(), dtype=np.float32)],
+        #         np.array(self.lidar.getRangeImage(), dtype=np.float32)
+        #     ])[:6]
+        # )
         try:
-            # Division par 10 pour que la valeur soient entre 0 et 1
             return np.concatenate([
                 [np.array(self.touch_sensor.getValue(), dtype=np.float32)],
-                np.array(self.lidar.getRangeImage(), dtype=np.float32)/10
+                np.array(self.lidar.getRangeImage(), dtype=np.float32)
             ])
         except:
             #En cas de non retour lidar
@@ -60,10 +66,12 @@ class VehicleDriver(Driver):
     def step(self):
         # sends observation to the supervisor
         self.emitter.send(self.observe().tobytes())
+
         if self.receiver.getQueueLength() > 0:
             while self.receiver.getQueueLength() > 1:
                 self.receiver.nextPacket()
             self.last_data = np.frombuffer(self.receiver.getBytes(), dtype=np.float32)[0]
+
         steeringAngle = self.last_data
 
         #print(f"steeringAngle({self.i}): ", steeringAngle)

@@ -203,7 +203,7 @@ PROTO TT02_2023b [
           translation -0.015 0 0.035
           children [
             Box {
-              size 0.45 0.2 0.12
+              size 0.5 0.2 0.1
             }
           ]
         }
