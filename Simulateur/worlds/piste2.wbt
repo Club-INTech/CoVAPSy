@@ -2226,16 +2226,10 @@ Solid {
     }
   }
 }
-DEF WorldSupervisor Robot {
+DEF WorldInit Robot {
   supervisor TRUE
-  name "WorldSupervisor"
-  controller "controllerWorldSupervisor"
+  name "WorldInit"
+  controller "controllerWorldInit"
   children [
-    Emitter {
-      name "supervisor_emitter"
-    }
-    Receiver {
-      name "supervisor_receiver"
-    }
   ]
 }
