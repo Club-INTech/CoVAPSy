@@ -11,6 +11,8 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv
 
 from controller import Supervisor
+from checkpoint import Checkpoint
+from checkpointmanager import CheckpointManager, checkpoints
 
 
 S = Supervisor()
@@ -37,6 +39,8 @@ class WebotsGymEnvironment(gym.Env):
         self.lidar_max_range = lidar_max_range
         self.n_sensors = 1
 
+        self.checkpoint_manager = CheckpointManager(S, checkpoints)
+
         basicTimeStep = int(S.getBasicTimeStep())
         self.sensorTime = basicTimeStep // 4
 
@@ -59,6 +63,8 @@ class WebotsGymEnvironment(gym.Env):
         # Last data received from the car
         self.last_data = np.zeros(self.lidar_horizontal_resolution + self.n_sensors, dtype=np.float32)
 
+        self.translation_field = S.getFromDef(f"TT02_{self.i}").getField("translation") # may cause access issues ...
+
         self.action_space = gym.spaces.Discrete(n_actions) #actions disponibles
         min = np.zeros(self.n_sensors + self.lidar_horizontal_resolution)
         max = np.ones(self.n_sensors + self.lidar_horizontal_resolution)
@@ -76,7 +82,7 @@ class WebotsGymEnvironment(gym.Env):
 
         return self.last_data
 
-    # reset the gym environment
+    # reset the gym environment reset
     def reset(self, seed=0):
         global n_envs
 
@@ -84,6 +90,8 @@ class WebotsGymEnvironment(gym.Env):
         if S.getTime() - self.last_reset >= 1:
             #print(self.last_reset, S.getTime() - self.last_reset)
             self.last_reset = S.getTime()
+
+            self.checkpoint_manager.reset()
 
             INITIAL_trans = [-1, self.y, 0.0391]
             INITIAL_rot = [-0.304369, -0.952554, -8.76035e-05 , 6.97858e-06]
@@ -108,7 +116,6 @@ class WebotsGymEnvironment(gym.Env):
         self.emitter.send(steeringAngle.tobytes())
 
         # we should add a beacon sensor pointing upwards to detect the beacon
-
         obs = self.observe()
         sensor_data = obs[:self.n_sensors]
 
@@ -116,18 +123,22 @@ class WebotsGymEnvironment(gym.Env):
         done = False
         truncated = False
 
+        x, y, _ = self.translation_field.getSFVec3f()
+        b_past_checkpoint = self.checkpoint_manager.update(x, y)
+        if b_past_checkpoint:
+            print("Checkpoint passed")
         b_collided, = sensor_data # unpack sensor data
         # print(f"data received from car {self.i}", obs[:6])
         up = 0 # TODO remove this
 
-        if b_collided and not(done):
+        if b_collided:
             # print("Collision détectée")
             reward = -100
             done = True
         elif up > 700: # TODO remove this
             done = False
             # print("Balise passée")
-            reward = 20
+            reward = 100
         else:
             done = False
             reward = 1
@@ -141,9 +152,10 @@ class WebotsGymEnvironment(gym.Env):
         pass
 
 
+
 #----------------Programme principal--------------------
 def main():
-    n_envs = 2
+    n_envs = 1
     n_actions = 17
     lidar_horizontal_resolution = 512
     lidar_max_range = 12.0
@@ -175,7 +187,7 @@ def main():
         n_steps=256,
         n_epochs=1, # doesn't make sense here
         batch_size=32,
-        learning_rate=1e-2,
+        learning_rate=1e-3,
         verbose=1,
         device="cuda:0" if is_available() else "cpu"
     )
