@@ -23,8 +23,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install MkDocs and plugins
-        run: pip install mkdocs
-        run: pip install mkdocs-mermaid2-plugin
+        run: pip install mkdocs mkdocs-mermaid2-plugin
       - name: Build with MkDocs
         run: mkdocs build
       # - name: Check for hard links and symlinks
