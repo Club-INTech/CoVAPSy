@@ -1,7 +1,3 @@
-#Home
+# Home
 
-
-Bonjour a toi chere INTech-ien t'interessant a Autotech. Ces page sont un guide pour commencer a contribuer a AutoTech. 
-
-
-Is this even working
+Bonjour à toi cher INTech-ien t'intéressant à Autotech. Ces pages sont un guide pour commencer à contribuer à AutoTech.
