@@ -22,8 +22,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-      - name: Install MkDocs
+      - name: Install MkDocs and plugins
         run: pip install mkdocs
+        run: pip install mkdocs-mermaid2-plugin
       - name: Build with MkDocs
         run: mkdocs build
       # - name: Check for hard links and symlinks
