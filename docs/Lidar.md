@@ -73,4 +73,4 @@ sensor.stop()
 ## Using Hokuyolx class 
 
 This class comes from [SkoltechRobotics/hokuyolx](https://github.com/SkoltechRobotics/hokuyolx). 
-This class has considerably more options than [HokuyoReader](#using-hokuyoreader-class) but is more complicated to understand. This class is documented at [http://hokuyolx.rtfd.org/](http://hokuyolx.rtfd.org/)
+This class has considerably more options than [HokuyoReader](#using-hokuyoreader-class) but is more complicated to understand. This class is documented at [http://hokuyolx.rtfd.org/](http://hokuyolx.rtfd.org/). As of 12/12/24 it doesn't work out off the box and we use [HokuyoReader](#using-hokuyoreader-class)
