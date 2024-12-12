@@ -80,10 +80,11 @@ try :
             
             #l'angle de la direction est la différence entre les mesures  
             #des rayons du lidar à -60 et +60°  
-            angle_degre = 0.02*(tableau_lidar_mm[60]-tableau_lidar_mm[-60])
-            set_direction_degre(angle_degre)
-            vitesse_m_s = 0.5
-            set_vitesse_m_s(vitesse_m_s)    
+        print(tableau_lidar_mm[60], tableau_lidar_mm[-60])
+        angle_degre = 0.02*(tableau_lidar_mm[60]-tableau_lidar_mm[-60])
+        set_direction_degre(angle_degre)
+        vitesse_m_s = 0.5
+        set_vitesse_m_s(vitesse_m_s)    
         ##############################################
 except KeyboardInterrupt: #récupération du CTRL+C
     print("fin des acquisitions")
