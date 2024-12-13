@@ -74,7 +74,6 @@ tableau_lidar_mm = [0]*360 #création d'un tableau de 360 zéros
 
 try : 
     while True :
-        lidar.rDistance()
         for angle in tableau_lidar_mm.index() :
             tableau_lidar_mm[angle] = lidar.rDistance[135 + (-angle * 4)]
             
