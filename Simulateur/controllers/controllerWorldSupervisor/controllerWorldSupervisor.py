@@ -89,9 +89,9 @@ class WebotsGymEnvironment(gym.Env):
         self.rotation_field = S.getFromDef(f"TT02_{self.i}").getField("rotation") # may cause access issues ...
 
         self.action_space = gym.spaces.Discrete(n_actions) #actions disponibles
-        min = np.zeros(self.n_sensors + self.lidar_horizontal_resolution)
-        max = np.ones(self.n_sensors + self.lidar_horizontal_resolution)
-        self.observation_space = gym.spaces.Box(min, max, dtype=np.float32) #Etat venant du LIDAR
+        box_min = np.zeros(self.n_sensors + self.lidar_horizontal_resolution)
+        box_max = np.ones(self.n_sensors + self.lidar_horizontal_resolution)
+        self.observation_space = gym.spaces.Box(box_min, box_max, dtype=np.float32) #Etat venant du LIDAR
         print(self.observation_space)
         print(self.observation_space.shape)
 
