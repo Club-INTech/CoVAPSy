@@ -75,10 +75,13 @@ tableau_lidar_mm = [0]*360 #création d'un tableau de 360 zéros
 try : 
     while True :
         for angle in range(len(tableau_lidar_mm)) :
-            tableau_lidar_mm[angle] = lidar.rDistance[135 + (-angle * 4)]
-            
-            #l'angle de la direction est la différence entre les mesures  
-            #des rayons du lidar à -60 et +60°  
+            # translation of the angle from the lidar to the angle of the table
+            if angle > 135 and angle < 225:
+                tableau_lidar_mm[angle] = float('nan')
+            else:
+                tableau_lidar_mm[angle] = lidar.rDistance[540 + (-angle * 4)]
+        #l'angle de la direction est la différence entre les mesures  
+        #des rayons du lidar à -60 et +60°  
         print(tableau_lidar_mm[60], tableau_lidar_mm[-60])
         angle_degre = 0.02*(tableau_lidar_mm[60]-tableau_lidar_mm[-60])
         set_direction_degre(angle_degre)
