@@ -154,6 +154,7 @@ PROTO TT02_2023b [
           mass 0.2
         }
         horizontalResolution IS lidarHorizontalResolution
+        fieldOfView 4.712 # 270 degrees
         numberOfLayers 1
         near 0.05
         minRange IS lidarMinRange

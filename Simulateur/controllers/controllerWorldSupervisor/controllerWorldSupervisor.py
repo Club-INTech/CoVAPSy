@@ -10,12 +10,33 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv
 
-from controller import Supervisor
 from checkpoint import Checkpoint
 from checkpointmanager import CheckpointManager, checkpoints
 
-
+from controller import Supervisor
 S = Supervisor()
+
+import os
+import sys
+
+# this is necessary because we are not in a package context
+# so we cannot do from ..config import *
+# SO EVEN IF IT LOOKS UGLY, WE HAVE TO DO THIS
+script_dir = os.path.dirname(os.path.abspath(__file__))
+controllers_path = os.path.join(script_dir, '../../controllers')
+sys.path.append(controllers_path)
+
+from config import *
+
+
+import matplotlib.pyplot as plt
+#plt.ion()
+# fig, ax = plt.subplots()
+# line, = ax.plot([], [])
+# plt.xlim(-lidar_max_range, lidar_max_range)
+# plt.ylim(-lidar_max_range, lidar_max_range)
+# plt.scatter(0, 0, c="red", marker="+")
+
 
 
 class WebotsGymEnvironment(gym.Env):
@@ -28,6 +49,7 @@ class WebotsGymEnvironment(gym.Env):
 
     def __init__(self, i: int, n_envs: int, n_actions: int, lidar_horizontal_resolution: int, lidar_max_range: float, reset_lock: Lock):
         #print the exported node string
+        print("BEGINS INIT")
         self.i = i
         if n_envs <= 1:
             self.y = -2.5
@@ -64,6 +86,7 @@ class WebotsGymEnvironment(gym.Env):
         self.last_data = np.zeros(self.lidar_horizontal_resolution + self.n_sensors, dtype=np.float32)
 
         self.translation_field = S.getFromDef(f"TT02_{self.i}").getField("translation") # may cause access issues ...
+        self.rotation_field = S.getFromDef(f"TT02_{self.i}").getField("rotation") # may cause access issues ...
 
         self.action_space = gym.spaces.Discrete(n_actions) #actions disponibles
         min = np.zeros(self.n_sensors + self.lidar_horizontal_resolution)
@@ -71,6 +94,9 @@ class WebotsGymEnvironment(gym.Env):
         self.observation_space = gym.spaces.Box(min, max, dtype=np.float32) #Etat venant du LIDAR
         print(self.observation_space)
         print(self.observation_space.shape)
+
+        print("try to reset the environment",  self.i)
+        self.reset()
 
     # returns the lidar data of all vehicles
     def observe(self):
@@ -80,6 +106,14 @@ class WebotsGymEnvironment(gym.Env):
                 self.receiver.nextPacket()
             self.last_data = np.clip(np.frombuffer(self.receiver.getBytes(), dtype=np.float32), 0, self.lidar_max_range)
 
+        if self.i == 0 and False:
+            deadzone = np.pi/2
+            angle = -(2 * np.pi - deadzone) * np.arange(self.lidar_horizontal_resolution) / self.lidar_horizontal_resolution - deadzone/2 + np.pi/2
+            line.set_xdata(np.cos(angle) * self.last_data[self.n_sensors:])
+            line.set_ydata(np.sin(angle) * self.last_data[self.n_sensors:])
+
+            plt.draw()
+            plt.pause(0.01)
         return self.last_data
 
     # reset the gym environment reset
@@ -98,11 +132,11 @@ class WebotsGymEnvironment(gym.Env):
 
             # WARNING: this is not thread safe
             # This may not be necessary but it's better to be safe than sorry
-            with self.reset_lock:
-                vehicle = S.getFromDef(f"TT02_{self.i}")
-                vehicle.getField("translation").setSFVec3f(INITIAL_trans)
-                vehicle.getField("rotation").setSFRotation(INITIAL_rot)
-                vehicle.resetPhysics()
+            # with self.reset_lock:
+            vehicle = S.getFromDef(f"TT02_{self.i}")
+            self.translation_field.setSFVec3f(INITIAL_trans)
+            self.rotation_field.setSFRotation(INITIAL_rot)
+            vehicle.resetPhysics()
 
         obs = self.observe()
         #super().step()
@@ -155,10 +189,6 @@ class WebotsGymEnvironment(gym.Env):
 
 #----------------Programme principal--------------------
 def main():
-    n_envs = 1
-    n_actions = 17
-    lidar_horizontal_resolution = 512
-    lidar_max_range = 12.0
     print("Creating environment")
 
     # global i
@@ -192,6 +222,17 @@ def main():
         device="cuda:0" if is_available() else "cpu"
     )
 
+    print(model.policy)
+    print("are features_extractors the same?",
+        model.policy.vf_features_extractor is
+        model.policy.features_extractor is
+        model.policy.pi_features_extractor
+    )
+    print("are mlp_extractors the same?",
+        model.policy.mlp_extractor.policy_net == model.policy.mlp_extractor.value_net
+    )
+
+
     #Entrainnement
     model.learn(total_timesteps=1e6)
 
@@ -201,7 +242,7 @@ def main():
     #del model
 
     #Chargement des données d"apprentissage
-    #model = PPO.load("Voiture_autonome_Webots_PPO")
+    model = PPO.load("Voiture_autonome_Webots_PPO")
 
     obs = env.reset()
 

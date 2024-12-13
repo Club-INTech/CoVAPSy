@@ -2,6 +2,19 @@ from typing import Tuple
 import numpy as np
 from controller import Supervisor
 
+import os
+import sys
+
+# this is necessary because we are not in a package context
+# so we cannot do from ..config import *
+# SO EVEN IF IT LOOKS UGLY, WE HAVE TO DO THIS
+script_dir = os.path.dirname(os.path.abspath(__file__))
+controllers_path = os.path.join(script_dir, '../../controllers')
+sys.path.append(controllers_path)
+
+from config import *
+
+
 
 def create_nodes(supervisor: Supervisor, n_envs: int, lidar_horizontal_resolution: int, lidar_max_range: float):
     """
@@ -42,8 +55,4 @@ def create_nodes(supervisor: Supervisor, n_envs: int, lidar_horizontal_resolutio
 
 if __name__ == "__main__":
     S = Supervisor()
-    n_envs = 2
-    lidar_horizontal_resolution = 512
-    lidar_max_range = 12.0
-
     create_nodes(S, n_envs, lidar_horizontal_resolution, lidar_max_range)

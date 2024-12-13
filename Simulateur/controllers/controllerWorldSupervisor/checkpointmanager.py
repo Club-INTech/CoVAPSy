@@ -1,7 +1,7 @@
 from typing import List
 from checkpoint import Checkpoint
-from controller import Supervisor
-
+#from controller import Supervisor
+Supervisor = None
 
 class CheckpointManager:
     def __init__(self, supervisor: Supervisor, checkpoints: List[Checkpoint]):
