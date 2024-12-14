@@ -27,6 +27,7 @@ controllers_path = os.path.join(script_dir, '../../controllers')
 sys.path.append(controllers_path)
 
 from config import *
+from extractor import CNN1DExtractor
 
 
 import matplotlib.pyplot as plt
@@ -47,7 +48,7 @@ class WebotsGymEnvironment(gym.Env):
     supervisor: the supervisor of the simulation
     """
 
-    def __init__(self, i: int, n_envs: int, n_actions: int, lidar_horizontal_resolution: int, lidar_max_range: float, reset_lock: Lock):
+    def __init__(self, i: int, n_envs: int, n_actions: int, n_sensor: int, lidar_horizontal_resolution: int, lidar_max_range: float, reset_lock: Lock):
         #print the exported node string
         print("BEGINS INIT")
         self.i = i
@@ -59,7 +60,7 @@ class WebotsGymEnvironment(gym.Env):
 
         self.lidar_horizontal_resolution = lidar_horizontal_resolution
         self.lidar_max_range = lidar_max_range
-        self.n_sensors = 1
+        self.n_sensors = n_sensor
 
         self.checkpoint_manager = CheckpointManager(S, checkpoints)
 
@@ -204,7 +205,7 @@ def main():
     # )
 
     reset_lock = Lock()
-    env = DummyVecEnv([lambda i=i: WebotsGymEnvironment(i, n_envs, n_actions, lidar_horizontal_resolution, lidar_max_range, reset_lock) for i in range(n_envs)])
+    env = DummyVecEnv([lambda i=i: WebotsGymEnvironment(i, n_envs, n_actions, n_sensor, lidar_horizontal_resolution, lidar_max_range, reset_lock) for i in range(n_envs)])
 
     print("Environment created")
     # check_env(env)
@@ -219,7 +220,15 @@ def main():
         batch_size=32,
         learning_rate=1e-3,
         verbose=1,
-        device="cuda:0" if is_available() else "cpu"
+        device="cuda" if is_available() else "cpu",
+        policy_kwargs=dict(
+            features_extractor_class=CNN1DExtractor,
+            features_extractor_kwargs=dict(
+                n_sensors=n_sensor,
+                lidar_horizontal_resolution=lidar_horizontal_resolution,
+                device="cuda" if is_available() else "cpu"
+            ),
+        )
     )
 
     print(model.policy)
