@@ -88,6 +88,7 @@ try :
         set_direction_degre(angle_degre)
         vitesse_m_s = 0.5
         set_vitesse_m_s(vitesse_m_s)    
+        time.sleep(0.1)
         ##############################################
 except KeyboardInterrupt: #récupération du CTRL+C
     print("fin des acquisitions")
