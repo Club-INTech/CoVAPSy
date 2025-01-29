@@ -49,7 +49,7 @@ def recule():
     time.sleep(0.2)
     set_vitesse_m_s(-1)
     
-pwm_dir = HardwarePWM(pwm_channel=1,hz=50)
+pwm_dir = HardwarePWM(pwm_channel=1,hz=50,chip=2) #use chip 2 on pi 5 in accordance with the documentation 
 pwm_dir.start(angle_pwm_centre)
 
 def set_direction_degre(angle_degre) :
