@@ -25,7 +25,7 @@ angle_pwm_centre= 7.5
 angle_degre_max = +18 #vers la gauche
 angle_degre=0
 
-pwm_prop = HardwarePWM(pwm_channel=0, hz=50)
+pwm_prop = HardwarePWM(pwm_channel=0, hz=50, chip=2) #use chip 2 on pi 5 in accordance with the documentation
 pwm_prop.start(pwm_stop_prop)
 
 def set_vitesse_m_s(vitesse_m_s):
