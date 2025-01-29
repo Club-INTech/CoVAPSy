@@ -17,7 +17,7 @@ vitesse_max_m_s_soft = 2 #vitesse maximale que l'on souhaite atteindre
 
 
 #paramètres de la fonction set_direction_degre
-direction = -1 #1 pour angle_pwm_min a gauche, -1 pour angle_pwm_min à droite
+direction = 1 #1 pour angle_pwm_min a gauche, -1 pour angle_pwm_min à droite
 angle_pwm_min = 6.91 #min
 angle_pwm_max = 10.7   #max
 angle_pwm_centre= 8.805
