@@ -3,14 +3,14 @@ import time
 
 #paramètres de départ, avec des butées très proche du centre
 direction = -1 #1 pour angle_pwm_min a gauche, -1 pour angle_pwm_min à droite
-angle_pwm_min = 6.6   #min
-angle_pwm_max = 8.9   #max
-angle_pwm_centre= 7.75
+angle_pwm_min = 6.91 #min
+angle_pwm_max = 10.7   #max
+angle_pwm_centre= 8.805
 
 angle_degre_max = +18 #vers la gauche
 angle_degre=0
 
-pwm_dir = HardwarePWM(pwm_channel=1,hz=50)
+pwm_dir = HardwarePWM(pwm_channel=1,hz=50,chip=2) #use chip 2 on pi 5 in accordance with the documentation
 pwm_dir.start(angle_pwm_centre)
 
 def set_direction_degre(angle_degre) :
