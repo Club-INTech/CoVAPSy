@@ -61,6 +61,7 @@ def set_direction_degre(angle_degre) :
         angle_pwm = angle_pwm_max
     if angle_pwm < angle_pwm_min :
         angle_pwm = angle_pwm_min
+    print(angle_pwm)
     pwm_dir.change_duty_cycle(angle_pwm)
     
 #connexion et démarrage du lidar
