@@ -17,4 +17,4 @@ sudo apt-get install python3-rpi.gpio
 pip install rpi_hardware_pwm --break-system-package
 
 # Add the PWM overlay configuration to the boot config file
-sudo sh -c 'echo "dtoverlay=pwm-2chan" >> /boot/firmware/config.txt'
+sudo sh -c 'echo "dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4" >> /boot/firmware/config.txt'
