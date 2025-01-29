@@ -91,6 +91,8 @@ try :
         time.sleep(0.1)
         ##############################################
 except KeyboardInterrupt: #récupération du CTRL+C
+    vitesse_m_s = 0
+    set_vitesse_m_s(vitesse_m_s)
     print("fin des acquisitions")
 
 #arrêt et déconnexion du lidar et des moteurs
