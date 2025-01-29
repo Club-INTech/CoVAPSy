@@ -61,7 +61,6 @@ def set_direction_degre(angle_degre) :
         angle_pwm = angle_pwm_max
     if angle_pwm < angle_pwm_min :
         angle_pwm = angle_pwm_min
-    print(angle_pwm)
     pwm_dir.change_duty_cycle(angle_pwm)
     
 #connexion et démarrage du lidar
@@ -87,7 +86,7 @@ try :
         angle_degre = 0.02*(tableau_lidar_mm[60]-tableau_lidar_mm[-60])
         print(tableau_lidar_mm[60], tableau_lidar_mm[-60], angle_degre)
         set_direction_degre(angle_degre)
-        vitesse_m_s = 0.2
+        vitesse_m_s = 0.05
         set_vitesse_m_s(vitesse_m_s)    
         time.sleep(0.1)
         ##############################################
