@@ -10,7 +10,7 @@ delta_pwm_max_prop = 1.1 #pwm à laquelle on atteint la vitesse maximale
 vitesse_max_m_s_hard = 8 #vitesse que peut atteindre la voiture
 vitesse_max_m_s_soft = 2 #vitesse maximale que l'on souhaite atteindre
 
-pwm_prop = HardwarePWM(pwm_channel=0, hz=50)
+pwm_prop = HardwarePWM(pwm_channel=0, hz=50, chip=2) #use chip 2 on pi 5 in accordance with the documentation
 pwm_prop.start(pwm_stop_prop)
 
 def set_vitesse_m_s(vitesse_m_s):
