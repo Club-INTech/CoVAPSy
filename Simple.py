@@ -71,6 +71,7 @@ lidar.startContinuous(0, 1080)
 
 tableau_lidar_mm = [0]*360 #création d'un tableau de 360 zéros
 
+time.sleep(1) #temps de démarrage du lidar
 
 try : 
     while True :
