@@ -18,14 +18,14 @@ vitesse_max_m_s_soft = 2 #vitesse maximale que l'on souhaite atteindre
 
 #paramètres de la fonction set_direction_degre
 direction = 1 #1 pour angle_pwm_min a gauche, -1 pour angle_pwm_min à droite
-angle_pwm_min = 6   #min
-angle_pwm_max = 9   #max
-angle_pwm_centre= 7.5
+angle_pwm_min = 6.91 #min
+angle_pwm_max = 10.7   #max
+angle_pwm_centre= 8.805
 
 angle_degre_max = +18 #vers la gauche
 angle_degre=0
 
-pwm_prop = HardwarePWM(pwm_channel=0, hz=50)
+pwm_prop = HardwarePWM(pwm_channel=0, hz=50, chip=2) #use chip 2 on pi 5 in accordance with the documentation
 pwm_prop.start(pwm_stop_prop)
 
 def set_vitesse_m_s(vitesse_m_s):
@@ -49,7 +49,7 @@ def recule():
     time.sleep(0.2)
     set_vitesse_m_s(-1)
     
-pwm_dir = HardwarePWM(pwm_channel=1,hz=50)
+pwm_dir = HardwarePWM(pwm_channel=1,hz=50,chip=2) #use chip 2 on pi 5 in accordance with the documentation 
 pwm_dir.start(angle_pwm_centre)
 
 def set_direction_degre(angle_degre) :
@@ -71,6 +71,7 @@ lidar.startContinuous(0, 1080)
 
 tableau_lidar_mm = [0]*360 #création d'un tableau de 360 zéros
 
+time.sleep(1) #temps de démarrage du lidar
 
 try : 
     while True :
@@ -86,11 +87,13 @@ try :
         angle_degre = 0.02*(tableau_lidar_mm[60]-tableau_lidar_mm[-60])
         print(tableau_lidar_mm[60], tableau_lidar_mm[-60], angle_degre)
         set_direction_degre(angle_degre)
-        vitesse_m_s = 0.5
+        vitesse_m_s = 0.05
         set_vitesse_m_s(vitesse_m_s)    
         time.sleep(0.1)
         ##############################################
 except KeyboardInterrupt: #récupération du CTRL+C
+    vitesse_m_s = 0
+    set_vitesse_m_s(vitesse_m_s)
     print("fin des acquisitions")
 
 #arrêt et déconnexion du lidar et des moteurs
