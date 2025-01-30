@@ -1,4 +1,4 @@
-from Lidar.HokuyoReader import HokuyoReader
+from src.HL.HokuyoReader import HokuyoReader
 
 import time
 from rpi_hardware_pwm import HardwarePWM
