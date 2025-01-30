@@ -60,7 +60,7 @@ sensor.startContinuous(0, 1080)
 Distances can be retrived as a numpy array with the `HokuyoReader.rDistance()` (r standing for radial)
 
 ```python
-distance_array=sensor.rDistance()
+distance_array=sensor.rDistance
 ```
 
 Use `HokuyoReader.stop()` to gracefully shutdown the lidar

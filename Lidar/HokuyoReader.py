@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 class HokuyoReader():
     measureMsgHeads = {'ME', 'GE', 'MD', 'GD'}
     
-    def deg2theta(deg):
+    def deg2theta(self, deg):
             return deg / 360 * 2 * np.pi
 
     def makeSocket(self, ip, port):
