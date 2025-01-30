@@ -1,4 +1,4 @@
-from Lidar.HokuyoReader import HokuyoReader
+from src.HL.HokuyoReader import HokuyoReader
 
 IP = '192.168.0.10'
 PORT = 10940

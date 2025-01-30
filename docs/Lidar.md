@@ -42,7 +42,7 @@ Il faut donc choisir une adresse ip dans le bon sous-resaux. Nous avons arbitrai
 
 ## Using HokuyoReader class
 
-This class is from [micus/tcp_hokuyo.py](https://gist.github.com/micus/43d98cc1763da34da879e9b0d0db790f)
+This class is from [cassc/tcp_hokuyo.py](https://gist.github.com/cassc/26ac479624cb028b2567491a68c34fb8)
 This class is simpler than [hokuyolx](#using-hokuyolx-class)
 
 Create the class instance with
