@@ -77,7 +77,7 @@ class VehicleDriver(Driver):
         #print(f"steeringAngle({self.i}): ", steeringAngle)
 
         self.setSteeringAngle(steeringAngle)
-        self.setCruisingSpeed(2)
+        self.setCruisingSpeed(7)
 
         return super().step()
 

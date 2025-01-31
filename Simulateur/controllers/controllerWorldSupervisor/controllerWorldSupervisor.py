@@ -16,6 +16,8 @@ from checkpointmanager import CheckpointManager, checkpoints
 from controller import Supervisor
 S = Supervisor()
 
+import torch.nn as nn
+
 import os
 import sys
 
@@ -65,6 +67,7 @@ class WebotsGymEnvironment(gym.Env):
         self.checkpoint_manager = CheckpointManager(S, checkpoints)
 
         basicTimeStep = int(S.getBasicTimeStep())
+        print(f"{basicTimeStep=}")
         self.sensorTime = basicTimeStep // 4
 
         self.reset_lock = reset_lock
@@ -107,14 +110,14 @@ class WebotsGymEnvironment(gym.Env):
                 self.receiver.nextPacket()
             self.last_data = np.clip(np.frombuffer(self.receiver.getBytes(), dtype=np.float32), 0, self.lidar_max_range)
 
-        if self.i == 0 and False:
-            deadzone = np.pi/2
-            angle = -(2 * np.pi - deadzone) * np.arange(self.lidar_horizontal_resolution) / self.lidar_horizontal_resolution - deadzone/2 + np.pi/2
-            line.set_xdata(np.cos(angle) * self.last_data[self.n_sensors:])
-            line.set_ydata(np.sin(angle) * self.last_data[self.n_sensors:])
+        # if self.i == 0:
+        #     deadzone = np.pwzi/2
+        #     angle = -(2 * np.pi - deadzone) * np.arange(self.lidar_horizontal_resolution) / self.lidar_horizontal_resolution - deadzone/2 + np.pi/2
+        #     line.set_xdata(np.cos(angle) * self.last_data[self.n_sensors:])
+        #     line.set_ydata(np.sin(angle) * self.last_data[self.n_sensors:])
 
-            plt.draw()
-            plt.pause(0.01)
+        #     plt.draw()
+        #     plt.pause(0.01)
         return self.last_data
 
     # reset the gym environment reset
@@ -147,7 +150,7 @@ class WebotsGymEnvironment(gym.Env):
     # step function of the gym environment
     def step(self, action):
         #print("Action: ", action)
-        steeringAngle = np.linspace(-.3, .3, self.n_actions, dtype=np.float32)[action, None]
+        steeringAngle = np.linspace(-.44, .44, self.n_actions, dtype=np.float32)[action, None]
         self.emitter.send(steeringAngle.tobytes())
 
         # we should add a beacon sensor pointing upwards to detect the beacon
@@ -160,23 +163,20 @@ class WebotsGymEnvironment(gym.Env):
 
         x, y, _ = self.translation_field.getSFVec3f()
         b_past_checkpoint = self.checkpoint_manager.update(x, y)
-        if b_past_checkpoint:
-            print("Checkpoint passed")
+
         b_collided, = sensor_data # unpack sensor data
         # print(f"data received from car {self.i}", obs[:6])
-        up = 0 # TODO remove this
 
         if b_collided:
-            # print("Collision détectée")
-            reward = -100
+            reward = -250
             done = True
-        elif up > 700: # TODO remove this
+        elif b_past_checkpoint:
+            reward = 100 * np.cos(self.checkpoint_manager.get_angle() - self.rotation_field.getSFRotation()[3])
             done = False
-            # print("Balise passée")
-            reward = 100
+            print(f"reward: {reward}")
         else:
-            done = False
             reward = 1
+            done = False
 
         S.step()
 
@@ -213,22 +213,29 @@ def main():
     logdir = "./Webots_tb/"
     #-- , tensorboard_log = logdir -- , tb_log_name = "PPO_voiture_webots"
 
+    policy_kwargs = dict(
+        features_extractor_class=CNN1DExtractor,
+        features_extractor_kwargs=dict(
+            n_sensors=n_sensor,
+            lidar_horizontal_resolution=lidar_horizontal_resolution,
+            device="cuda" if is_available() else "cpu"
+        ),
+        activation_fn=nn.ReLU,
+    )
+
+    gamma = 0.5**(S.getBasicTimeStep() * 1e-3 / 5)
+    gamma = .975
+    print(f"{gamma=}")
     #Définition modèle avec paramètre par défaut
     model = PPO("MlpPolicy", env,
-        n_steps=256,
-        n_epochs=1, # doesn't make sense here
-        batch_size=32,
-        learning_rate=1e-3,
+        n_steps=2048,
+        n_epochs=10,
+        batch_size=64,
+        learning_rate=3e-3,
+        gamma=gamma, # calculated so that discounts by 1/2 every T seconds
         verbose=1,
         device="cuda" if is_available() else "cpu",
-        policy_kwargs=dict(
-            features_extractor_class=CNN1DExtractor,
-            features_extractor_kwargs=dict(
-                n_sensors=n_sensor,
-                lidar_horizontal_resolution=lidar_horizontal_resolution,
-                device="cuda" if is_available() else "cpu"
-            ),
-        )
+        policy_kwargs=policy_kwargs
     )
 
     print(model.policy)

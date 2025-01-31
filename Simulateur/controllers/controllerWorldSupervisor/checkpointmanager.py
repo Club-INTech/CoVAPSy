@@ -1,6 +1,7 @@
 from typing import List
 from checkpoint import Checkpoint
-#from controller import Supervisor
+import numpy as np
+from controller import Supervisor
 Supervisor = None
 
 class CheckpointManager:
@@ -21,6 +22,12 @@ class CheckpointManager:
             return True
         return False
 
+    def get_angle(self):
+        """
+        Get the angle of the next checkpoint
+        """
+        return self.checkpoints[self.next_checkpoint].theta
+
     def reset(self):
         self.next_checkpoint = 0
 
@@ -34,7 +41,7 @@ checkpoints = [
     Checkpoint(2.2, 3.23981, 1.26309),
     Checkpoint(1.57, 2.8261, 1.99783),
     Checkpoint(1.04, 3.18851, 2.71151),
-    Checkpoint(2.5, 3.6475, 4.09688),
+    Checkpoint(1.98, 3.6475, 4.09688),
     Checkpoint(-3, 2.58692, 4.5394),
     Checkpoint(-2.5, 1.52457, 4.3991),
     Checkpoint(-2.2, 0.659969, 3.57074),
