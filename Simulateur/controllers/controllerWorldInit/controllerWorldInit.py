@@ -9,16 +9,16 @@ import sys
 # so we cannot do from ..config import *
 # SO EVEN IF IT LOOKS UGLY, WE HAVE TO DO THIS
 script_dir = os.path.dirname(os.path.abspath(__file__))
-controllers_path = os.path.join(script_dir, '../../controllers')
+controllers_path = os.path.join(script_dir, '../..')
 sys.path.append(controllers_path)
 
 from config import *
 
 
 
-def create_nodes(supervisor: Supervisor, n_envs: int, lidar_horizontal_resolution: int, lidar_max_range: float):
+def create_nodes(supervisor: Supervisor, n_vehicles: int, lidar_horizontal_resolution: int, lidar_max_range: float):
     """
-    Creates n_envs vehicles in the simulation
+    Creates n_vehicles vehicles in the simulation
     for each vehicle, create an emitter and a receiver in the supervisor
     """
 
@@ -31,16 +31,15 @@ def create_nodes(supervisor: Supervisor, n_envs: int, lidar_horizontal_resolutio
         name "WorldSupervisor"
         controller "controllerWorldSupervisor"
         children [
-            {"\n".join([f' Emitter  {{name "supervisor_emitter_{i}"}}' for i in range(n_envs)])}
-            {"\n".join([f' Receiver {{name "supervisor_receiver_{i}"}}' for i in range(n_envs)])}
+            {"\n".join([f' Emitter  {{name "supervisor_emitter_{i}"}}' for i in range(n_vehicles)])}
+            {"\n".join([f' Receiver {{name "supervisor_receiver_{i}"}}' for i in range(n_vehicles)])}
         ]
     }}
     """
 
-    print(proto_string)
     root_children_field.importMFNodeFromString(-1, proto_string)
 
-    for i in range(n_envs):
+    for i in range(n_vehicles):
         proto_string = f"""
         DEF TT02_{i} TT02_2023b {{
             name "TT02_{i}"
@@ -55,4 +54,4 @@ def create_nodes(supervisor: Supervisor, n_envs: int, lidar_horizontal_resolutio
 
 if __name__ == "__main__":
     S = Supervisor()
-    create_nodes(S, n_envs, lidar_horizontal_resolution, lidar_max_range)
+    create_nodes(S, n_vehicles, lidar_horizontal_resolution, lidar_max_range)

@@ -16,7 +16,6 @@ class VehicleDriver(Driver):
         basicTimeStep = int(self.getBasicTimeStep())
         self.sensorTime = basicTimeStep // 4
 
-        print("self.getName(): ", self.getName())
         self.i = int(self.getName().split("_")[-1])
 
         # Lidar
@@ -30,11 +29,9 @@ class VehicleDriver(Driver):
 
         # Communication
         self.receiver = self.getDevice("TT02_receiver")
-        print(f"{self.receiver=}")
         self.receiver.enable(self.sensorTime)
         self.receiver.setChannel(2 * self.i) # corwe ponds the the supervisor's emitter channel
         self.emitter = self.getDevice("TT02_emitter")
-        print(f"{self.emitter=}")
         self.emitter.setChannel(2 * self.i + 1) # corresponds the the supervisor's receiver channel
 
         # Last data received from the supervisor (steering angle)
@@ -42,13 +39,6 @@ class VehicleDriver(Driver):
 
     #Vérification de l"état de la voiture
     def observe(self):
-        # print(
-        #     f"data sent from car     {self.i}",
-        #     np.concatenate([
-        #         [np.array(self.touch_sensor.getValue(), dtype=np.float32)],
-        #         np.array(self.lidar.getRangeImage(), dtype=np.float32)
-        #     ])[:6]
-        # )
         try:
             return np.concatenate([
                 [np.array(self.touch_sensor.getValue(), dtype=np.float32)],
@@ -56,7 +46,6 @@ class VehicleDriver(Driver):
             ])
         except:
             #En cas de non retour lidar
-            print("Pas de retour du lidar")
             return np.concatenate([
                 np.array(self.touch_sensor.getValue(), dtype=np.float32),
                 np.zeros(self.lidar.getNumberOfPoints(), dtype=np.float32)
@@ -73,8 +62,6 @@ class VehicleDriver(Driver):
             self.last_data = np.frombuffer(self.receiver.getBytes(), dtype=np.float32)[0]
 
         steeringAngle = self.last_data
-
-        #print(f"steeringAngle({self.i}): ", steeringAngle)
 
         self.setSteeringAngle(steeringAngle)
         self.setCruisingSpeed(7)
@@ -94,11 +81,10 @@ class VehicleDriver(Driver):
 
 #----------------Programme principal--------------------
 def main():
-    print("VehicleDriver init")
     driver = VehicleDriver()
-    print("VehicleDriver init done")
     driver.run()
 
 
 if __name__ == "__main__":
+    print("Starting the vehicle driver")
     main()

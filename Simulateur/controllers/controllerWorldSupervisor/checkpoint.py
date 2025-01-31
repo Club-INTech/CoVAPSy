@@ -16,34 +16,37 @@ class Checkpoint:
 
         length = 0.5
 
-        # Cylinder (shaft)
-        supervisor.getRoot().getField("children").importMFNodeFromString(-1, f"""
-        Transform {{
-            translation {self.x0} {self.y0} 0
-            rotation 0 1 0 {-np.pi / 2}
-            children [
-                Transform {{
-                    rotation 1 0 0 {self.theta + np.pi}
-                    children [
-                        Shape {{
-                            geometry Cylinder {{
-                                height {length}  # Leave space for the arrowhead
-                                radius 0.02
-                            }}
-                            appearance Appearance {{
-                                material Material {{
-                                    diffuseColor {self.color[0]} {self.color[1]} {self.color[2]}
+        # debug flag to generate the cylinder and cone shapes
+        DEBUG = False
+        if DEBUG:
+            # Cylinder (shaft)
+            supervisor.getRoot().getField("children").importMFNodeFromString(-1, f"""
+            Transform {{
+                translation {self.x0} {self.y0} 0
+                rotation 0 1 0 {-np.pi / 2}
+                children [
+                    Transform {{
+                        rotation 1 0 0 {self.theta + np.pi}
+                        children [
+                            Shape {{
+                                geometry Cylinder {{
+                                    height {length}  # Leave space for the arrowhead
+                                    radius 0.02
+                                }}
+                                appearance Appearance {{
+                                    material Material {{
+                                        diffuseColor {self.color[0]} {self.color[1]} {self.color[2]}
+                                    }}
                                 }}
                             }}
-                        }}
-                    ]
-                }}
-            ]
-        }}
-        """)
+                        ]
+                    }}
+                ]
+            }}
+            """)
 
-        # Cone (arrowhead)
-        supervisor.getRoot().getField("children").importMFNodeFromString(-1, f"""
+            # Cone (arrowhead)
+            supervisor.getRoot().getField("children").importMFNodeFromString(-1, f"""
         Transform {{
             translation {self.x0 + np.cos(self.theta)*length/2} {self.y0 + np.sin(self.theta)*length/2} 0
             rotation 0 1 0 {-np.pi / 2}

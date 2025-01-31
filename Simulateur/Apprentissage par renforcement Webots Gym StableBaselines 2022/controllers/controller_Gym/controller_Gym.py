@@ -144,8 +144,8 @@ class WebotsGymEnvironment(gym.Env):
 
 #----------------Programme principal--------------------
 def main():
-    n_envs = 4
-    # env = SubprocVecEnv([lambda: WebotsGymEnvironment() for i in range(n_envs)])
+    n_vehicles = 4
+    # env = SubprocVecEnv([lambda: WebotsGymEnvironment() for i in range(n_vehicles)])
     env = WebotsGymEnvironment()
     check_env(env)
 
