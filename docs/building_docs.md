@@ -152,7 +152,7 @@ For full documentation, visit [mkdocs.org](https://www.mkdocs.org).
 
 ### Commands
 
-* `mkdocs serve` - Start the live-reloading docs server. It should now be accessible at [127.0.0.1:8000](http://127.0.0.1:8000/) on ***your machine***.
+* `mkdocs serve` - Start the live-reloading docs SERVER{simulation_rank}. It should now be accessible at [127.0.0.1:8000](http://127.0.0.1:8000/) on ***your machine***.
 * `mkdocs gh-deploy` - Build the documentation site on the gh-pages branch of your repository.
 
 !!! Note

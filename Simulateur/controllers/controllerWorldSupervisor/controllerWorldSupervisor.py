@@ -40,8 +40,44 @@ import matplotlib.pyplot as plt
 
 
 def log(s: str):
-    return
-    print(s, file=open("/tmp/intech_covapsy/logs", "a"))
+    if DOLOG:
+        print(s, file=open("/tmp/autotech/logs", "a"))
+
+
+# FIFO to communnicate with the train SERVER{simulation_rank} process
+# DOES NOT WORK WHEN USING SubProcVecENV
+# simulation_rank = int(
+#     max(
+#         re.findall(
+#             r"(\d+)toserver.pipe",
+#             "\n".join(os.listdir("/tmp/autotech/")),
+#             re.MULTILINE
+#         ) or [0]
+#     )
+# )
+
+with open(f"/proc/{os.getppid()}/status") as f:
+    log("youpi j'ai réussi à choper un truc I guess")
+    for line in f:
+        log(line)
+        if line.startswith("PPid:"):
+            log("found it bro")
+            pppid = line.split()[1]
+            log(pppid)
+            break
+
+log(pppid)
+
+simulation_rank = int(
+    re.search(
+        pppid + r" (\d+)",
+        open("/tmp/autotech/simulationranks", "r").read(),
+        re.MULTILINE
+    ).group(1)
+)
+
+log(f"CLIENT ?{pppid}? {simulation_rank=}")
+
 
 
 class WebotsVehicleGymEnvironment(gym.Env):
@@ -54,8 +90,6 @@ class WebotsVehicleGymEnvironment(gym.Env):
 
     def __init__(self, vehicle_rank: int):
         #print the exported node string
-        print("BEGINS INIT")
-        log(f"CLIENT{vehicle_rank} : begins init")
 
         self.vehicle_rank = vehicle_rank
         if n_vehicles <= 1:
@@ -80,20 +114,12 @@ class WebotsVehicleGymEnvironment(gym.Env):
         self.receiver.enable(self.sensorTime)
         self.receiver.setChannel(2 * self.vehicle_rank + 1)
 
-        # FIFO to communnicate with the train server process
-        simulation_rank = max(
-            re.findall(
-                r"(\d+)toserver.pipe",
-                "\n".join(os.listdir("/tmp/intech_covapsy/")),
-                re.MULTILINE
-            ) or [0]
-        )
 
-        log(f"CLIENT{vehicle_rank} : {simulation_rank=}")
-        log(f"CLIENT{vehicle_rank} : {simulation_rank}toserver.pipe")
-        self.fifo_w = open(f"/tmp/intech_covapsy/{simulation_rank}toserver.pipe", "wb")
-        log(f"CLIENT{vehicle_rank} : serverto{simulation_rank}.pipe")
-        self.fifo_r = open(f"/tmp/intech_covapsy/serverto{simulation_rank}.pipe", "rb")
+        log(f"CLIENT{simulation_rank}/{vehicle_rank} : begins init")
+        log(f"CLIENT{simulation_rank}/{vehicle_rank} : {simulation_rank}toserver.pipe")
+        self.fifo_w = open(f"/tmp/autotech/{simulation_rank}toserver.pipe", "wb")
+        log(f"CLIENT{simulation_rank}/{vehicle_rank} : serverto{simulation_rank}.pipe")
+        self.fifo_r = open(f"/tmp/autotech/serverto{simulation_rank}.pipe", "rb")
 
         # Last data received from the car
         self.last_data = np.zeros(lidar_horizontal_resolution + n_sensors, dtype=np.float32)
@@ -134,7 +160,7 @@ class WebotsVehicleGymEnvironment(gym.Env):
 
         obs = self.observe()
         info = {}
-        log(f"CLIENT{self.vehicle_rank} : reset over")
+        log(f"CLIENT{simulation_rank}/{self.vehicle_rank} : reset over")
         return obs, info
 
     # step function of the gym environment
@@ -182,7 +208,7 @@ def main():
     supervisor.step()
     log("-------------------------------------------------------------------")
     for i, e in enumerate(envs):
-        log(f"CLIENT{e.vehicle_rank} : reset")
+        log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : reset")
         e.reset()
 
 
@@ -190,20 +216,20 @@ def main():
         log(f"CLIENT ALL : begin step")
         #Prédiction pour séléctionner une action à partir de l"observation
         for e in envs:
-            log(f"CLIENT{e.vehicle_rank} : trying to read from fifo")
+            log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : trying to read from fifo")
             action = np.frombuffer(e.fifo_r.read(np.dtype(np.int64).itemsize), dtype=np.int64)[0]
-            log(f"CLIENT{e.vehicle_rank} : received {action=}")
+            log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : received {action=}")
             obs, reward, done, truncated, info = e.step(action)
 
             if done: obs, info = e.reset()
 
-            log(f"CLIENT{e.vehicle_rank} : sending {obs=}")
+            log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : sending {obs=}")
             e.fifo_w.write(obs.tobytes())
-            log(f"CLIENT{e.vehicle_rank} : sending {reward=}")
+            log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : sending {reward=}")
             e.fifo_w.write(reward.tobytes())
-            log(f"CLIENT{e.vehicle_rank} : sending {done=}")
+            log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : sending {done=}")
             e.fifo_w.write(done.tobytes())
-            log(f"CLIENT{e.vehicle_rank} : sending {truncated=}")
+            log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : sending {truncated=}")
             e.fifo_w.write(truncated.tobytes())
             e.fifo_w.flush()
 
