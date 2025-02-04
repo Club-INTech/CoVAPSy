@@ -115,7 +115,7 @@ if __name__ == "__main__":
     print(f"{gamma=}")
 
     model = PPO("MlpPolicy", envs,
-        n_steps=2048,
+        n_steps=512, # usually 2048 or 1024
         n_epochs=10,
         batch_size=64,
         learning_rate=3e-3,
@@ -133,13 +133,22 @@ if __name__ == "__main__":
     log(f"SERVER : finished executing")
     # keep the process running and the fifo open
 
-    model.learn(total_timesteps=1e6)
-    # while True:
-    #     pass
-    # processes = []
-    # for rank in range(num_processes):
-    #     p = mp.Process(target=train, args=(model,))
-    #     p.start()
-    #     processes.append(p)
-    # for p in processes:
-    #     p.join()
+    save_path = __file__.rsplit("/", 1)[0] + "/checkpoints/"
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+
+    step = 0
+    while True:
+        model.learn(total_timesteps=2)
+        model.save(save_path + str(step))
+        log(f"---------------------------------------------------")
+        log(f"SERVER : FINISHED LEARNING STEP")
+        log(f"SERVER : SAVING MODEL TO {step}")
+        log(f"SERVER : BEGINNING NEW LEARNING STEP")
+        log(f"---------------------------------------------------")
+        print("---------------------------------------------------")
+        print("SERVER : FINISHED LEARNING STEP")
+        print("SERVER : SAVING MODEL TO", step)
+        print("SERVER : BEGINNING NEW LEARNING STEP")
+        print("---------------------------------------------------")
+        step += 1

@@ -92,11 +92,6 @@ class WebotsVehicleGymEnvironment(gym.Env):
         #print the exported node string
 
         self.vehicle_rank = vehicle_rank
-        if n_vehicles <= 1:
-            self.y = -2.5
-        else:
-            self.y = -2.5 + (self.vehicle_rank / (n_vehicles - 1) - 0.5) * 1.2
-
         self.checkpoint_manager = CheckpointManager(supervisor, checkpoints)
 
         basicTimeStep = int(supervisor.getBasicTimeStep())
@@ -125,6 +120,7 @@ class WebotsVehicleGymEnvironment(gym.Env):
         self.last_data = np.zeros(lidar_horizontal_resolution + n_sensors, dtype=np.float32)
 
         self.translation_field = supervisor.getFromDef(f"TT02_{self.vehicle_rank}").getField("translation") # may cause access issues ...
+        #print(type(self.translation_field))
         self.rotation_field = supervisor.getFromDef(f"TT02_{self.vehicle_rank}").getField("rotation") # may cause access issues ...
 
         self.action_space = gym.spaces.Discrete(n_actions) #actions disponibles
@@ -148,14 +144,13 @@ class WebotsVehicleGymEnvironment(gym.Env):
         if supervisor.getTime() - self.last_reset >= 1:
             self.last_reset = supervisor.getTime()
 
-            self.checkpoint_manager.reset()
-
-            INITIAL_trans = [-1, self.y, 0.0391]
-            INITIAL_rot = [-0.304369, -0.952554, -8.76035e-05 , 6.97858e-06]
-
             vehicle = supervisor.getFromDef(f"TT02_{self.vehicle_rank}")
-            self.translation_field.setSFVec3f(INITIAL_trans)
-            self.rotation_field.setSFRotation(INITIAL_rot)
+
+            self.checkpoint_manager.reset()
+            self.translation_field.setSFVec3f(self.checkpoint_manager.getTranslation())
+            self.rotation_field.setSFRotation(self.checkpoint_manager.getRotation())
+            self.checkpoint_manager.update()
+
             vehicle.resetPhysics()
 
         obs = self.observe()
@@ -185,7 +180,7 @@ class WebotsVehicleGymEnvironment(gym.Env):
             reward = np.float32(-250)
             done = np.True_
         elif b_past_checkpoint:
-            reward = 100 * np.cos(self.checkpoint_manager.get_angle() - self.rotation_field.getSFRotation()[3], dtype=np.float32)
+            reward = 100 * np.cos(self.checkpoint_manager.getAngle() - self.rotation_field.getSFRotation()[3], dtype=np.float32)
             done = np.False_
             print(f"reward: {reward}")
         else:

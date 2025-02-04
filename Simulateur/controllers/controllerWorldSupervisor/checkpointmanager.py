@@ -1,3 +1,4 @@
+import random
 from typing import List
 from checkpoint import Checkpoint
 import numpy as np
@@ -12,24 +13,38 @@ class CheckpointManager:
         for checkpoint in self.checkpoints:
             checkpoint.create_vector_2d(self.supervisor)
 
-    def update(self, x, y):
+    def update(self, x=None, y=None):
         """
         Update the next checkpoint if the vehicle has reached the current one
         """
-        checkpoint = self.checkpoints[self.next_checkpoint]
-        if checkpoint.check_plane(x, y):
+        # if x is None then y is None because of default value rules in python
+
+        if x is None or self.checkpoints[self.next_checkpoint].check_plane(x, y):
             self.next_checkpoint = (self.next_checkpoint + 1) % len(self.checkpoints)
             return True
         return False
 
-    def get_angle(self):
+    def getAngle(self):
         """
         Get the angle of the next checkpoint
         """
         return self.checkpoints[self.next_checkpoint].theta
 
+    def getTranslation(self):
+        """
+        Get the translation of the next checkpoint
+        """
+        chp = self.checkpoints[self.next_checkpoint]
+        return [chp.x0, chp.y0, 0.0391]
+
+    def getRotation(self):
+        """
+        Get the rotation of the next checkpoint
+        """
+        return [0, 0, 1, self.getAngle()]
+
     def reset(self):
-        self.next_checkpoint = 0
+        self.next_checkpoint = random.randint(0, len(self.checkpoints) - 1)
 
 
 checkpoints = [
