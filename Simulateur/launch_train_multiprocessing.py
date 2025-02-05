@@ -114,7 +114,17 @@ if __name__ == "__main__":
     gamma = .975
     print(f"{gamma=}")
 
-    model = PPO("MlpPolicy", envs,
+    save_path = __file__.rsplit("/", 1)[0] + "/checkpoints/"
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+
+    # will be None if the directory is empty
+    # else will be the name of the last checkpoint
+    model_name = max(os.listdir(save_path) or [None], key=lambda x: int(x.rstrip(".zip")))
+
+    model = PPO.load(save_path + model_name, envs) if model_name else PPO(
+        "MlpPolicy",
+        envs,
         n_steps=512, # usually 2048 or 1024
         n_epochs=10,
         batch_size=64,
@@ -133,22 +143,19 @@ if __name__ == "__main__":
     log(f"SERVER : finished executing")
     # keep the process running and the fifo open
 
-    save_path = __file__.rsplit("/", 1)[0] + "/checkpoints/"
-    if not os.path.exists(save_path):
-        os.mkdir(save_path)
-
-    step = 0
+    # get the index of the last model or 0
+    i = int(model_name.rstrip(".zip")) + 1 if model_name else 0
     while True:
-        model.learn(total_timesteps=2)
-        model.save(save_path + str(step))
+        model.learn(total_timesteps=10)
+        model.save(save_path + str(i))
         log(f"---------------------------------------------------")
         log(f"SERVER : FINISHED LEARNING STEP")
-        log(f"SERVER : SAVING MODEL TO {step}")
+        log(f"SERVER : SAVING MODEL TO {i}")
         log(f"SERVER : BEGINNING NEW LEARNING STEP")
         log(f"---------------------------------------------------")
         print("---------------------------------------------------")
         print("SERVER : FINISHED LEARNING STEP")
-        print("SERVER : SAVING MODEL TO", step)
+        print("SERVER : SAVING MODEL TO", i)
         print("SERVER : BEGINNING NEW LEARNING STEP")
         print("---------------------------------------------------")
-        step += 1
+        i += 1

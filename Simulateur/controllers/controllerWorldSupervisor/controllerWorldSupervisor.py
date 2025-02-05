@@ -5,6 +5,7 @@ import random
 import gymnasium as gym
 import time
 from torch.cuda import is_available
+import math
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
@@ -120,7 +121,6 @@ class WebotsVehicleGymEnvironment(gym.Env):
         self.last_data = np.zeros(lidar_horizontal_resolution + n_sensors, dtype=np.float32)
 
         self.translation_field = supervisor.getFromDef(f"TT02_{self.vehicle_rank}").getField("translation") # may cause access issues ...
-        #print(type(self.translation_field))
         self.rotation_field = supervisor.getFromDef(f"TT02_{self.vehicle_rank}").getField("rotation") # may cause access issues ...
 
         self.action_space = gym.spaces.Discrete(n_actions) #actions disponibles
@@ -146,9 +146,15 @@ class WebotsVehicleGymEnvironment(gym.Env):
 
             vehicle = supervisor.getFromDef(f"TT02_{self.vehicle_rank}")
 
+            trans = self.checkpoint_manager.getTranslation()
+            rot = self.checkpoint_manager.getRotation()
+
+            # trans[0] -= math.cos(rot[3]) * 0.05
+            # trans[1] -= math.sin(rot[3]) * 0.05
+
             self.checkpoint_manager.reset()
-            self.translation_field.setSFVec3f(self.checkpoint_manager.getTranslation())
-            self.rotation_field.setSFRotation(self.checkpoint_manager.getRotation())
+            self.translation_field.setSFVec3f(trans)
+            self.rotation_field.setSFRotation(rot)
             self.checkpoint_manager.update()
 
             vehicle.resetPhysics()
@@ -173,16 +179,18 @@ class WebotsVehicleGymEnvironment(gym.Env):
 
         x, y, _ = self.translation_field.getSFVec3f()
         b_past_checkpoint = self.checkpoint_manager.update(x, y)
-
         b_collided, = sensor_data # unpack sensor data
 
         if b_collided:
             reward = np.float32(-250)
             done = np.True_
         elif b_past_checkpoint:
-            reward = 100 * np.cos(self.checkpoint_manager.getAngle() - self.rotation_field.getSFRotation()[3], dtype=np.float32)
+            reward = np.float32(100) #* np.cos(self.checkpoint_manager.getAngle() - self.rotation_field.getSFRotation()[3], dtype=np.float32)
             done = np.False_
-            print(f"reward: {reward}")
+            if  reward <= 0:
+                print(f"reward: {reward}")
+                print(self.checkpoint_manager.getAngle() - self.rotation_field.getSFRotation()[3])
+                print(np.array(self.checkpoint_manager.getTranslation()) - np.array(self.translation_field.getSFVec3f()))
         else:
             reward = np.float32(1)
             done = np.False_
