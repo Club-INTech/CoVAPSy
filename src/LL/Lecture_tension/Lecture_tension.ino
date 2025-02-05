@@ -1,10 +1,3 @@
-#include <SPI.h>
-#include <avr/io.h>
-
-const int SCK_PIN = 13;  // D13 = pin19 = PortB.5
-const int MISO_PIN = 12;  // D12 = pin18 = PortB.4
-const int MOSI_PIN = 11;  // D11 = pin17 = PortB.3
-const int SS_PIN = 10;    // D10 = pin16 = PortB.2
 const int sensorPin_Lipo = A2;   // select the input pin for the battery sensor
 const int sensorPin_NiMh = A3;   // select the input pin for the battery sensor
 
@@ -19,15 +12,8 @@ volatile bool dataRequested = false;
 
 void setup() {
     Serial.begin(115200);
-    pinMode(MISO_PIN, OUTPUT);
-    pinMode(SS_PIN, INPUT_PULLUP);
-    SPI.begin();
-    SPCR |= _BV(SPE); // Enable SPI as slave
-    SPI.attachInterrupt(); // Enable SPI interrupt
-}
-
-ISR(SPI_STC_vect) {
-    dataRequested = true;
+    pinMode(sensorPin_Lipo, INPUT);
+    pinMode(sensorPin_NiMh, INPUT);
 }
 
 void loop() {
@@ -40,13 +26,6 @@ void loop() {
     Serial.print(voltage_LiPo);
     Serial.print("V, Voltage NiMh: ");
     Serial.println(voltage_NiMh);
-
-    if (dataRequested) {
-        dataRequested = false;
-        // Send the voltage values over SPI
-        SPI.transfer((byte*)&voltage_LiPo, sizeof(voltage_LiPo));
-        SPI.transfer((byte*)&voltage_NiMh, sizeof(voltage_NiMh));
-    }
 
     delay(100);
 }
