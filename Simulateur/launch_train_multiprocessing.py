@@ -1,4 +1,5 @@
 import os
+import time
 from typing import *
 
 import numpy as np
@@ -14,7 +15,8 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv
 import gymnasium as gym
 
 from config import *
-from extractor import CNN1DExtractor
+from extractors.CNN1DExtractor import CNN1DExtractor
+from extractors.CNN1DExtractor import CNN1DExtractor
 
 
 def log(s: str):
@@ -37,7 +39,7 @@ class WebotsSimulationGymEnvironment(gym.Env):
         box_min = np.zeros(n_sensors + lidar_horizontal_resolution)
         box_max = np.ones(n_sensors + lidar_horizontal_resolution)
         self.observation_space = gym.spaces.Box(box_min, box_max, dtype=np.float32) #Etat venant du LIDAR
-        self.action_space = gym.spaces.Discrete(n_actions) #actions disponibles
+        self.action_space = gym.spaces.MultiDiscrete([n_actions_steering, n_actions_speed]) #actions disponibles
 
         if not os.path.exists("/tmp/autotech"):
             os.mkdir("/tmp/autotech")
@@ -49,7 +51,7 @@ class WebotsSimulationGymEnvironment(gym.Env):
 
         #  --mode=fast --minimize --no-rendering --batch --stdout
         os.system(f"""
-            webots ~/CoVAPSy_Intech/Simulateur/worlds/piste2.wbt --mode=fast --minimize --batch --stdout &
+            webots ~/CoVAPSy_Intech/Simulateur/worlds/piste2.wbt --mode=fast --minimize --no-rendering --batch --stdout &
             echo $! {simulation_rank} >>/tmp/autotech/simulationranks
         """)
         log(f"SERVER{simulation_rank} : {simulation_rank}toserver.pipe")
@@ -83,6 +85,9 @@ class WebotsSimulationGymEnvironment(gym.Env):
         log(f"SERVER{self.simulation_rank} : received {truncated=}")
         info        = {}
 
+        obs = np.nan_to_num(obs, nan=0., posinf=10.)
+        reward = np.nan_to_num(reward, nan=0., posinf=10.)
+
         return obs, reward, done, truncated, info
 
 
@@ -100,40 +105,75 @@ if __name__ == "__main__":
 
     envs = SubprocVecEnv([lambda rank=rank : make_env(rank) for rank in range(n_simulations)])
 
+    ExtractorClass = CNN1DExtractor
+
     policy_kwargs = dict(
-        features_extractor_class=CNN1DExtractor,
+        features_extractor_class=ExtractorClass,
         features_extractor_kwargs=dict(
             n_sensors=n_sensors,
             lidar_horizontal_resolution=lidar_horizontal_resolution,
-            device="cuda" if torch.cuda.is_available() else "cpu"
+            device=device,
         ),
         activation_fn=nn.ReLU,
+        net_arch=[512, 256, 256, 128]
     )
 
-    #gamma = 0.5**(S.getBasicTimeStep() * 1e-3 / 5)
-    gamma = .975
-    print(f"{gamma=}")
 
-    save_path = __file__.rsplit("/", 1)[0] + "/checkpoints/"
+    ppo_args = dict(
+        n_steps=2048, # usually 2048 or 1024
+        n_epochs=10,
+        batch_size=512,
+        learning_rate=3e-4,
+        gamma=0.99, # calculated so that discounts by 1/2 every T seconds
+        verbose=1,
+        normalize_advantage=True,
+        device=device
+    )
+
+
+    save_path = __file__.rsplit("/", 1)[0] + "/checkpoints/" + ExtractorClass.__name__ + "/"
     if not os.path.exists(save_path):
         os.mkdir(save_path)
 
-    # will be None if the directory is empty
-    # else will be the name of the last checkpoint
-    model_name = max(os.listdir(save_path) or [None], key=lambda x: int(x.rstrip(".zip")))
+    try:
+        # will throw an error if the directory is emptye
+        # else will be the name of the last checkpoint
+        print(save_path)
+        print(os.listdir(save_path))
+        model_name = max(os.listdir(save_path), key=lambda x: int(x.rstrip(".zip")))
+        print(f"Loading model {save_path + model_name}")
+        model = PPO.load(
+            save_path + model_name,
+            envs,
+            **ppo_args,
+            policy_kwargs=policy_kwargs
+        )
+        i = int(model_name.rstrip(".zip")) + 1
+    except:
+        model = PPO(
+            "MlpPolicy",
+            envs,
+            **ppo_args,
+            policy_kwargs=policy_kwargs
+        )
+        # os.system(
+        #     f'''if [ -n "$(ls {save_path})" ]; then
+        #         rm {save_path}*
+        #     fi'''
+        # )
 
-    model = PPO.load(save_path + model_name, envs) if model_name else PPO(
-        "MlpPolicy",
-        envs,
-        n_steps=512, # usually 2048 or 1024
-        n_epochs=10,
-        batch_size=64,
-        learning_rate=3e-3,
-        gamma=gamma, # calculated so that discounts by 1/2 every T seconds
-        verbose=1,
-        device="cuda" if torch.cuda.is_available() else "cpu",
-        policy_kwargs=policy_kwargs
-    )
+        i = 0
+        print("Model not found, creating a new one")
+
+    print("MODEL LOADED WITH HYPER PARAMETERS:")
+    print(f"{model.learning_rate=}")
+    print(f"{model.gamma=}")
+    print(f"{model.verbose=}")
+    print(f"{model.n_steps=}")
+    print(f"{model.n_epochs=}")
+    print(f"{model.batch_size=}")
+    print(f"{model.device=}")
+    print(f"{model.policy=}")
 
 
     # NOTE: this is required for the ``fork`` method to work
@@ -143,19 +183,7 @@ if __name__ == "__main__":
     log(f"SERVER : finished executing")
     # keep the process running and the fifo open
 
-    # get the index of the last model or 0
-    i = int(model_name.rstrip(".zip")) + 1 if model_name else 0
     while True:
-        model.learn(total_timesteps=10)
+        model.learn(total_timesteps=100_000)
         model.save(save_path + str(i))
-        log(f"---------------------------------------------------")
-        log(f"SERVER : FINISHED LEARNING STEP")
-        log(f"SERVER : SAVING MODEL TO {i}")
-        log(f"SERVER : BEGINNING NEW LEARNING STEP")
-        log(f"---------------------------------------------------")
-        print("---------------------------------------------------")
-        print("SERVER : FINISHED LEARNING STEP")
-        print("SERVER : SAVING MODEL TO", i)
-        print("SERVER : BEGINNING NEW LEARNING STEP")
-        print("---------------------------------------------------")
         i += 1

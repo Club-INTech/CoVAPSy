@@ -1,15 +1,16 @@
-import random
 from typing import List
 from checkpoint import Checkpoint
 import numpy as np
 from controller import Supervisor
-Supervisor = None
+import os
+
+np.random.seed(os.getpid())
 
 class CheckpointManager:
     def __init__(self, supervisor: Supervisor, checkpoints: List[Checkpoint]):
         self.supervisor = supervisor
         self.checkpoints = checkpoints
-        self.next_checkpoint = 0
+        self.reset()
         for checkpoint in self.checkpoints:
             checkpoint.create_vector_2d(self.supervisor)
 
@@ -18,6 +19,7 @@ class CheckpointManager:
         Update the next checkpoint if the vehicle has reached the current one
         """
         # if x is None then y is None because of default value rules in python
+
 
         if x is None or self.checkpoints[self.next_checkpoint].check_plane(x, y):
             self.next_checkpoint = (self.next_checkpoint + 1) % len(self.checkpoints)
@@ -44,7 +46,7 @@ class CheckpointManager:
         return [0, 0, 1, self.getAngle()]
 
     def reset(self):
-        self.next_checkpoint = random.randint(0, len(self.checkpoints) - 1)
+        self.next_checkpoint = np.random.randint(0, len(self.checkpoints) - 1)
 
 
 checkpoints = [
@@ -57,6 +59,7 @@ checkpoints = [
     Checkpoint(1.57, 2.8261, 1.99783),
     Checkpoint(1.04, 3.18851, 2.71151),
     Checkpoint(1.98, 3.6475, 4.09688),
+    Checkpoint(2.5, 3.1775, 4.44688),
     Checkpoint(-3, 2.58692, 4.5394),
     Checkpoint(-2.5, 1.52457, 4.3991),
     Checkpoint(-2.2, 0.659969, 3.57074),
@@ -64,6 +67,7 @@ checkpoints = [
     Checkpoint(-1, 0.0727115, 1.81299),
     Checkpoint(-1, 0.788956, 1.22248),
     Checkpoint(-1.6, 1.24749, 0.288391),
+    Checkpoint(-2.5, 0.88749, -0.281609),
     Checkpoint(-3, 0.0789172, -0.557653),
     Checkpoint(2.7, -0.832859, -0.484867),
     Checkpoint(1.8, -1.79723, 0.408769),

@@ -4,7 +4,6 @@ import numpy as np
 import random
 import gymnasium as gym
 import time
-from torch.cuda import is_available
 import math
 
 from stable_baselines3 import PPO
@@ -77,6 +76,7 @@ simulation_rank = int(
     ).group(1)
 )
 
+
 log(f"CLIENT ?{pppid}? {simulation_rank=}")
 
 
@@ -123,7 +123,6 @@ class WebotsVehicleGymEnvironment(gym.Env):
         self.translation_field = supervisor.getFromDef(f"TT02_{self.vehicle_rank}").getField("translation") # may cause access issues ...
         self.rotation_field = supervisor.getFromDef(f"TT02_{self.vehicle_rank}").getField("rotation") # may cause access issues ...
 
-        self.action_space = gym.spaces.Discrete(n_actions) #actions disponibles
         box_min = np.zeros(n_sensors + lidar_horizontal_resolution)
         box_max = np.ones(n_sensors + lidar_horizontal_resolution)
         self.observation_space = gym.spaces.Box(box_min, box_max, dtype=np.float32) #Etat venant du LIDAR
@@ -134,14 +133,14 @@ class WebotsVehicleGymEnvironment(gym.Env):
         if self.receiver.getQueueLength() > 0:
             while self.receiver.getQueueLength() > 1:
                 self.receiver.nextPacket()
-            self.last_data = np.clip(np.frombuffer(self.receiver.getBytes(), dtype=np.float32), 0, lidar_max_range)
+            self.last_data = np.frombuffer(self.receiver.getBytes(), dtype=np.float32)
 
         return self.last_data
 
     # reset the gym environment reset
     def reset(self, seed=0):
         # this has to be done otherwise thec cars will shiver for a while sometimes when respawning and idk why
-        if supervisor.getTime() - self.last_reset >= 1:
+        if supervisor.getTime() - self.last_reset >= 1e-1:
             self.last_reset = supervisor.getTime()
 
             vehicle = supervisor.getFromDef(f"TT02_{self.vehicle_rank}")
@@ -166,8 +165,9 @@ class WebotsVehicleGymEnvironment(gym.Env):
 
     # step function of the gym environment
     def step(self, action):
-        steeringAngle = np.linspace(-.44, .44, n_actions, dtype=np.float32)[action, None]
-        self.emitter.send(steeringAngle.tobytes())
+        action_steering = np.linspace(-.44, .44, n_actions_steering, dtype=np.float32)[action[0], None]
+        action_speed = np.linspace(0.5, 7.0, n_actions_speed, dtype=np.float32)[action[1], None]
+        self.emitter.send(np.array([action_steering, action_speed], dtype=np.float32).tobytes())
 
         # we should add a beacon sensor pointing upwards to detect the beacon
         obs = self.observe()
@@ -177,22 +177,19 @@ class WebotsVehicleGymEnvironment(gym.Env):
         done = np.False_
         truncated = np.False_
 
-        x, y, _ = self.translation_field.getSFVec3f()
+        x, y, z = self.translation_field.getSFVec3f()
         b_past_checkpoint = self.checkpoint_manager.update(x, y)
         b_collided, = sensor_data # unpack sensor data
 
-        if b_collided:
-            reward = np.float32(-250)
+        if b_collided or (z < -10):
+            #print(f"CLIENT{simulation_rank}/{self.vehicle_rank} : {b_collided=}, {z=}")
+            reward = np.float32(-2.0)
             done = np.True_
         elif b_past_checkpoint:
-            reward = np.float32(100) #* np.cos(self.checkpoint_manager.getAngle() - self.rotation_field.getSFRotation()[3], dtype=np.float32)
+            reward = np.float32(1.0) #* np.cos(self.checkpoint_manager.getAngle() - self.rotation_field.getSFRotation()[3], dtype=np.float32)
             done = np.False_
-            if  reward <= 0:
-                print(f"reward: {reward}")
-                print(self.checkpoint_manager.getAngle() - self.rotation_field.getSFRotation()[3])
-                print(np.array(self.checkpoint_manager.getTranslation()) - np.array(self.translation_field.getSFVec3f()))
         else:
-            reward = np.float32(1)
+            reward = np.float32(0.05)
             done = np.False_
 
         return obs, reward, done, truncated, {}
@@ -220,7 +217,7 @@ def main():
         #Prédiction pour séléctionner une action à partir de l"observation
         for e in envs:
             log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : trying to read from fifo")
-            action = np.frombuffer(e.fifo_r.read(np.dtype(np.int64).itemsize), dtype=np.int64)[0]
+            action = np.frombuffer(e.fifo_r.read(np.dtype(np.int64).itemsize * 2), dtype=np.int64)
             log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : received {action=}")
             obs, reward, done, truncated, info = e.step(action)
 

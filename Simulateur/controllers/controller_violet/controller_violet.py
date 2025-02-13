@@ -15,7 +15,7 @@ basicTimeStep = int(driver.getBasicTimeStep())
 sensorTimeStep = 4 * basicTimeStep
 
 #Lidar
-lidar = Lidar("RpLidarA2")
+lidar = Lidar("Hokuyo")
 lidar.enable(sensorTimeStep)
 lidar.enablePointCloud() 
 

@@ -19,7 +19,7 @@ class VehicleDriver(Driver):
         self.i = int(self.getName().split("_")[-1])
 
         # Lidar
-        self.lidar = self.getDevice("RpLidarA2")
+        self.lidar = self.getDevice("Hokuyo")
         self.lidar.enable(self.sensorTime)
         self.lidar.enablePointCloud()
 
@@ -35,7 +35,7 @@ class VehicleDriver(Driver):
         self.emitter.setChannel(2 * self.i + 1) # corresponds the the supervisor's receiver channel
 
         # Last data received from the supervisor (steering angle)
-        self.last_data = 0.
+        self.last_data = np.zeros(2, dtype=np.float32)
 
     #Vérification de l"état de la voiture
     def observe(self):
@@ -54,17 +54,18 @@ class VehicleDriver(Driver):
     #Fonction step de l"environnement GYM
     def step(self):
         # sends observation to the supervisor
+
         self.emitter.send(self.observe().tobytes())
 
         if self.receiver.getQueueLength() > 0:
             while self.receiver.getQueueLength() > 1:
                 self.receiver.nextPacket()
-            self.last_data = np.frombuffer(self.receiver.getBytes(), dtype=np.float32)[0]
+            self.last_data = np.frombuffer(self.receiver.getBytes(), dtype=np.float32)
 
-        steeringAngle = self.last_data
+        action_steeering, action_speed = self.last_data
 
-        self.setSteeringAngle(steeringAngle)
-        self.setCruisingSpeed(7)
+        self.setSteeringAngle(action_steeering)
+        self.setCruisingSpeed(action_speed)
 
         return super().step()
 

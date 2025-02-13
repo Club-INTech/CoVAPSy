@@ -45,8 +45,6 @@ def create_nodes(supervisor: Supervisor, n_vehicles: int, lidar_horizontal_resol
             name "TT02_{i}"
             controller "controllerVehicleDriver"
             color 0.5 0 0.6
-            lidarHorizontalResolution {lidar_horizontal_resolution}
-            lidarMaxRange {lidar_max_range}
         }}
         """
         root_children_field.importMFNodeFromString(-1, proto_string)

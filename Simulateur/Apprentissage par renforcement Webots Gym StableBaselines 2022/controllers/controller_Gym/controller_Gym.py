@@ -159,7 +159,7 @@ def main():
         batch_size=32,
         learning_rate=3e-3,
         verbose=1,
-        device='cuda:0'
+        device=device
     )
 
     #Entrainnement
