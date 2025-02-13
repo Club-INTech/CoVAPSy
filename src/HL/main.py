@@ -1,142 +1,170 @@
-from HokuyoReader import HokuyoReader
-import time
-from rpi_hardware_pwm import HardwarePWM
-import onnx
-from scipy.special import softmax
-import numpy as np
+# States
+# 0 - Idle
+# 1 - Auto Driving
+# 2 - Manual Driving with ps4 controller
+# 3 - tune prop_pwm
+# 4 - tune dir_pwm
+
+from gpiozero import LED, Button, Buzzer
+from luma.core.interface.serial import i2c
+from luma.core.render import canvas
+from luma.oled.device import ssd1306
+from PIL import Image, ImageDraw, ImageFont
+import struct
+import smbus  # type: ignore #ignore the module could not be resolved error because it is a linux only module
+import textwrap
+
+from get_ip import get_ip, check_ssh_connections
+
+bus = smbus.SMBus(1)  # 1 indicates /dev/i2c-1
+#oled
+serial = i2c(port=1, address=0x3C)
+device = ssd1306(serial)
 
 
-MODEL_PATH = "model.onnx"
-SOFT_MAX = 2
-VITESS_MIN = 0.1
+SLAVE_ADDRESS = 0x08  # I2C address of the slave arduino or stm32
+bp_next = Button("GPIO5", bounce_time=0.1)
+bp_entre = Button("GPIO6", bounce_time=0.1)
+led1 = LED("GPIO17")
+led2 = LED("GPIO27")
+buzzer = Buzzer("GPIO26")
+State = 0
+Screen = 0
+TEXT_HEIGHT = 11
+TEXT_LEFT_OFFSET = 3 # Offset from the left of the screen to ensure no cuttoff
 
 
-class Car():
+def make_voltage_im():
+    try: #Will fail if arduino is rest ex: temporary power loss when plugu=ing in usb
+        received = read_data(2)  # Adjust length as needed
+    except OSError:
+        received = [0.0, 0.0]
+        print("I2C bus error")
+    
+    # filter out values below 6V and round to 2 decimal places
+    received = [round(elem, 2) if elem > 6 else 0.0 for elem in received]
+    text = f"LiP:{received[0]:.2f}V|NiH:{received[1]:.2f}V"
+    im = Image.new("1", (128, TEXT_HEIGHT), "black")
+    draw = ImageDraw.Draw(im)
+    font = ImageFont.load_default()
+    draw.text((3, 0), text, fill="white", font=font)
+    return im
 
-    def __init__(self):
-        
-        self.IP = '192.168.0.10'
-        self.PORT = 10940
+def display_combined_im(text):
+    im = Image.new("1", (128, 64), "black")
+    draw = ImageDraw.Draw(im)
+    font = ImageFont.load_default()
+    
+    # Wrap the text to fit within the width of the display
+    wrapped_text = textwrap.fill(text, width=20)  # Adjust width as needed
+    draw.text((3, 0), wrapped_text, fill="white", font=font)
+    
+    voltage_im = make_voltage_im()
+    im.paste(voltage_im, (0, 64 - TEXT_HEIGHT))
+    
+    with canvas(device) as draw:
+        draw.bitmap((0, 0), im, fill="white")
 
-        # Paramètres de la fonction vitesse_m_s
-        self.direction_prop = 1                                                             # -1 pour les variateurs inversés ou un petit rapport correspond à une marche avant
-        self.pwm_stop_prop = 7.53
-        self.point_mort_prop = 0.5
-        self.delta_pwm_max_prop = 1.1                                                       # pwm à laquelle on atteint la vitesse maximale
+def write_data(data):
+    # Convert string to list of ASCII values
+    data_list = [ord(char) for char in data]
+    bus.write_i2c_block_data(SLAVE_ADDRESS, 0, data_list)
 
-        self.vitesse_max_m_s_hard = 8                                                       # vitesse que peut atteindre la voiture
-        self.vitesse_max_m_s_soft = SOFT_MAX                                                      # vitesse maximale que l'on souhaite atteindre
+def read_data(num_floats=3):
+
+    # Each float is 4 bytes
+    length = num_floats * 4
+    # Read a block of data from the slave
+    data = bus.read_i2c_block_data(SLAVE_ADDRESS, 0, length)
+    # Convert the byte data to floats
+    if len(data) >= length:
+        float_values = struct.unpack('f' * num_floats, bytes(data[:length]))
+        return list(float_values)
+    else:
+        raise ValueError("Not enough data received from I2C bus")
 
 
-        # Paramètres de la fonction set_direction_degre
-        self.direction = 1                                                                  #1 pour angle_pwm_min a gauche, -1 pour angle_pwm_min à droite
-        self.angle_pwm_min = 6.91                                                           # min
-        self.angle_pwm_max = 10.7                                                           # max
-        self.angle_pwm_centre= 8.805
-
-        self.angle_degre_max = +18                                                          # vers la gauche
-        self.angle_degre=0
-
-        # Initialisation des pwm
-
-        self.pwm_prop = HardwarePWM(pwm_channel=0, hz=50, chip=2)                           # Utilisation du chip 2 sur la pi 5 pour correspondre à la documentation
-        self.pwm_prop.start(self.pwm_stop_prop)
-
-        self.pwm_dir = HardwarePWM(pwm_channel=1,hz=50,chip=2)                              # Utilisation du chip 2 sur la pi 5 pour correspondre à la documentation
-        self.pwm_dir.start(self.angle_pwm_centre)
-        self.ai_model = onnx.load(MODEL_PATH)
-        print(onnx.checker.check_model(self.ai_model))
-        
-        self.lookup_dir = np.linspace(-18,18,16)
-        self.lookup_prop = np.linspace(VITESS_MIN,SOFT_MAX,16)
-
-        # Initialisation du lidar
-
-        self.lidar = HokuyoReader(self.IP, self.PORT) 
-        self.lidar.stop()
-        self.lidar.startContinuous(0, 1080)
-        
-
-    def set_vitesse_m_s(self, vitesse_m_s):
-        if vitesse_m_s > self.vitesse_max_m_s_soft :
-            vitesse_m_s = self.vitesse_max_m_s_soft
-        elif vitesse_m_s < -self.vitesse_max_m_s_hard :
-            vitesse_m_s = -self.vitesse_max_m_s_hard
-        if vitesse_m_s == 0 :
-            self.pwm_prop.change_duty_cycle(self.pwm_stop_prop)
-        elif vitesse_m_s > 0 :
-            vitesse = vitesse_m_s * (self.delta_pwm_max_prop)/self.vitesse_max_m_s_hard
-            self.pwm_prop.change_duty_cycle(self.pwm_stop_prop + self.direction_prop*(self.point_mort_prop + vitesse ))
-        elif vitesse_m_s < 0 :
-            vitesse = vitesse_m_s * (self.delta_pwm_max_prop)/self.vitesse_max_m_s_hard
-            self.pwm_prop.change_duty_cycle(self.pwm_stop_prop - self.direction_prop*(self.point_mort_prop - vitesse ))
+def Idle(): #Enable chossing between states
+    global Screen
+    global State
+    if Screen==0 and check_ssh_connections():
+        led1.on()
+        Screen=1
+    if not check_ssh_connections():
+        led1.off()
+    match Screen: #Display on OLED
+        case 0: #IP and ssh status
+            ip=get_ip()
+            text = "Ready to SSH\nIP:"+ip
+        case 1: #AutoDriving mode
+            text = "Auto Driving"
             
-    def recule(self):
-        self.set_vitesse_m_s(-self.vitesse_max_m_s_hard)
-        time.sleep(0.2)
-        self.set_vitesse_m_s(0)
-        time.sleep(0.2)
-        self.set_vitesse_m_s(-1)
+        case 2: #Manual Driving mode
+            text = "Manual Driving With PS4 Controller"
+            #PS4 controller status
+        case 3: #tune prop_pwm
+            text = "Tune Prop PWM"
+            #PS4 controller status
 
-    def set_direction_degre(self,angle_degre) :
-        angle_pwm = self.angle_pwm_centre + self.direction * (self.angle_pwm_max - self.angle_pwm_min) * angle_degre /(2 * self.angle_degre_max )
-        if angle_pwm > self.angle_pwm_max : 
-            angle_pwm = self.angle_pwm_max
-        if angle_pwm < self.angle_pwm_min :
-            angle_pwm = self.angle_pwm_min
-        self.pwm_dir.change_duty_cycle(angle_pwm)
+        case 4: #tune dir_pwm
+            text = "Tune Dir PWM"
+            #PS4 controller status
+    display_combined_im(text)
+    if bp_next.is_pressed:
+        bp_next.wait_for_release()
+        Screen+=1
+        if Screen>4:
+            Screen=0
+    if bp_entre.is_pressed:
+        bp_entre.wait_for_release() 
+        State=Screen
 
-    def stop(self):
-        self.pwm_dir.stop()
-        self.pwm_prop.start(self.pwm_stop_prop) 
-        print("Arrêt du moteur")
-        self.lidar.stop_motor()
-        self.lidar.stop()
-        time.sleep(1)
-        self.lidar.disconnect()
-        quit()
-    
-    def ai_update(self, lidar_data):
         
-         
-        vect_dir, vect_prop  = self.ai_model(lidar_data) #2 vectors direction and speed. direction is between hard left at index 0 and hard right at index 1. speed is between min speed at index 0 and max speed at index 1
-        vect_dir = softmax(vect_dir, dim=0) #distribution de probabilité
-        vect_prop = softmax(vect_prop, dim=0)
-        
-    
-        angle = sum(self.lookup_dir*vect_dir) #moyenne pondérée des angles
-        vitesse = sum(self.lookup_prop*vect_prop) #moyenne pondérée des vitesses
-        
-        return angle, vitesse    
-    
-    def main(self):
-        print("Depart")
-        try : 
-            while True :
-                lidar_data = self.lidar.rDistance()[0:1079] #récupération des données du lidar. On ne prend que les 1080 premières valeurs et on ignore la dernière par facilit" pour l'ia
-                angle, vitesse = self.ai_update(lidar_data)
-                self.set_direction_degre(angle)
-                self.set_vitesse_m_s(vitesse)
-        except KeyboardInterrupt: #récupération du CTRL+C
-            vitesse_m_s = 0
-            self.set_vitesse_m_s(vitesse_m_s)
-            print("Fin des acquisitions")
-        finally:
-            self.lidar.stop()
-            self.pwm_dir.stop()
-            self.pwm_prop.start(self.pwm_stop_prop) 
-            
-      
 
-if __name__ == '__main__' :
+
+def Auto_Driving():
+    global State
     try:
-        GR86 = Car()
-        if input("Appuyez sur D pour démarrer ou tout autre touche pour quitter") in ("D","d"):
-            GR86.main()
-        else:
+        if Driving_has_not_started:
+            from driving import Car
+            GR86 = Car()
+        GR86.main()
+        if bp_entre.is_pressed or bp_next.is_pressed:
             raise KeyboardInterrupt
-        
     except KeyboardInterrupt:
         GR86.stop()
-        print("Programme arrêté par l'utilisateur")
-        pass
+        Driving_has_not_started = False
+        State=0
+        
+        
+def Manual_Driving():
+    global State
+    print("Manual Driving")
+    State=0
+def tune_prop_pwm():
+    global State
+    print("Tune Prop PWM")
+    State=0
+def tune_dir_pwm():
+    global State
+    print("Tune Dir PWM")
+    State=0
+
+
+def main():
+    while True:
+        match State:
+            case 0: #Idle
+                Idle()
+            case 1: #Auto Driving
+               Auto_Driving()
+            case 2: #Manual Driving with ps4 controller
+                Manual_Driving()
+            case 3: #tune prop_pwm
+                tune_prop_pwm()
+            case 4: #tune dir_pwm
+                tune_dir_pwm()
+            
+        
+if __name__ == "__main__":
+    main()
