@@ -20,7 +20,9 @@ pip install rpi_hardware_pwm --break-system-packages
 pip install matplotlib --break-system-packages
 pip install RPi.GPIO --break-system-packages
 pip install numpy --break-system-packages 
-pip install onnx --break-system-packages
+pip install onnxruntime --break-system-packages
+pip install netifaces2 --break-system-packages
+
 
 
 # Add the cron job to run the script at reboot

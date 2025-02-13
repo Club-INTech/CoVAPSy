@@ -1,3 +1,4 @@
 #!/bin/bash
-mkdir /home/intech/test
-python /home/intech/CoVAPSy/src/HL/displayvoltage.py
+cd CoVAPSy
+git pull
+python /home/intech/CoVAPSy/src/HL/main.py
