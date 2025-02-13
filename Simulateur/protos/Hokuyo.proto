@@ -55,7 +55,7 @@ PROTO Hokuyo [
       mass 0.2
     }
     fieldOfView 4.71238898038469
-    horizontalResolution 512
+    horizontalResolution 1080
     numberOfLayers 1
     near 0.020000
     defaultFrequency 12

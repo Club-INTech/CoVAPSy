@@ -6,7 +6,7 @@ n_vehicles = 1
 n_actions_steering = 16
 n_actions_speed = 16
 n_sensors = 1
-lidar_horizontal_resolution = 512 # DON'T CHANGE THIS VALUE
+lidar_horizontal_resolution = 1080 # DON'T CHANGE THIS VALUE
 lidar_max_range = 12.0
 device = "cuda" if is_available() else "cpu"
 

@@ -16,7 +16,6 @@ import gymnasium as gym
 
 from config import *
 from extractors.CNN1DExtractor import CNN1DExtractor
-from extractors.CNN1DExtractor import CNN1DExtractor
 
 
 def log(s: str):
@@ -135,12 +134,19 @@ if __name__ == "__main__":
     if not os.path.exists(save_path):
         os.mkdir(save_path)
 
-    try:
-        # will throw an error if the directory is emptye
-        # else will be the name of the last checkpoint
-        print(save_path)
-        print(os.listdir(save_path))
-        model_name = max(os.listdir(save_path), key=lambda x: int(x.rstrip(".zip")))
+
+    # will throw an error if the directory is emptye
+    # else will be the name of the last checkpoint
+    print(save_path)
+    print(os.listdir(save_path))
+
+    valid_files = [x for x in os.listdir(save_path) if x.rstrip(".zip").isnumeric()]
+
+    if valid_files:
+        model_name = max(
+            valid_files,
+            key=lambda x : int(x.rstrip(".zip"))
+        )
         print(f"Loading model {save_path + model_name}")
         model = PPO.load(
             save_path + model_name,
@@ -149,7 +155,9 @@ if __name__ == "__main__":
             policy_kwargs=policy_kwargs
         )
         i = int(model_name.rstrip(".zip")) + 1
-    except:
+        print("----- Model found, loading it -----")
+
+    else:
         model = PPO(
             "MlpPolicy",
             envs,
@@ -163,9 +171,9 @@ if __name__ == "__main__":
         # )
 
         i = 0
-        print("Model not found, creating a new one")
+        print("----- Model not found, creating a new one -----")
 
-    print("MODEL LOADED WITH HYPER PARAMETERS:")
+    print("MODEL HAS HYPER PARAMETERS:")
     print(f"{model.learning_rate=}")
     print(f"{model.gamma=}")
     print(f"{model.verbose=}")
