@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-import time
+
 
 cap = cv.VideoCapture(0)
 
@@ -21,7 +21,7 @@ while(True):
     upper_red2 = np.array([180, 255, 255])
 
     # upper and lower bounds for green color
-    lower_green = np.array([40, 40, 40])  
+    lower_green = np.array([40, 40, 40])
     upper_green = np.array([90, 255, 255])
 
     # Threshold the HSV image to get only blue colors
@@ -35,21 +35,35 @@ while(True):
 
     # Create a green mask
     maskGreen = cv.inRange(hsv, lower_green, upper_green)
-    #
-    mask = maskRed + maskGreen
+    #Bitwise-OR the masks
+    mask = maskRed | maskGreen
 
     # Bitwise-AND mask and original image
     res = cv.bitwise_and(frame,frame, mask= mask)
 
-    # Count the number of red and green pixels
-    red_pixels = cv.countNonZero(maskRed)
-    green_pixels = cv.countNonZero(maskGreen)
+    # Find contours
+    contours_green, _ = cv.findContours(maskGreen, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    contours_red, _ = cv.findContours(maskRed, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    
+    if contours_green and contours_red:
+        # Assume the largest contour for each color is the wall
+        green_contour = max(contours_green, key=cv.contourArea)
+        red_contour = max(contours_red, key=cv.contourArea)
+        
+        # Compute the centroids using image moments
+        M_green = cv.moments(green_contour)
+        M_red = cv.moments(red_contour)
+        
+        if M_green["m00"] > 0 and M_red["m00"] > 0:
+            cx_green = int(M_green["m10"] / M_green["m00"])
+            cx_red = int(M_red["m10"] / M_red["m00"])
+            
+            # Check if the green (left wall) is to the left of the red (right wall)
+            if cx_green < cx_red:
+                print("right direction")
+            else:
+                print("wrong direction")
 
-    # Print the color with more pixels
-    if (red_pixels > green_pixels):
-        print( "Red")
-    else:
-        print( "Green")
 
     # Show the images
     cv.imshow('frame',frame)
