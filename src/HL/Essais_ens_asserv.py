@@ -38,7 +38,12 @@ pwm_prop = HardwarePWM(pwm_channel=0, hz=50, chip=2) #use chip 2 on pi 5 in acco
 pwm_prop.start(pwm_stop_prop)
 
 def write_data(float_data):
-    bus.write_i2c_block_data(SLAVE_ADDRESS, 0, [float_data])
+    # Convert the float to bytes
+    byte_data = struct.pack('f', float_data)
+    # Convert the bytes to a list of integers
+    int_data = list(byte_data)
+    # Write the data to the I2C bus
+    bus.write_i2c_block_data(SLAVE_ADDRESS, 0, int_data)
     
 def read_data(num_floats=3):
 
