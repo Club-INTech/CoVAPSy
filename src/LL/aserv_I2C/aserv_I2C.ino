@@ -189,25 +189,29 @@ void loop()
 }
 
 // Function that executes whenever data is received from master
-void receiveEvent(int howMany)
-{
-  if (howMany == sizeof(float))
-  {
-    union {
-      byte b[sizeof(float)];
-      float f;
-    } data;
+// void receiveEvent(int howMany)
+// {
+//   if (howMany == sizeof(float))
+//   {
+//     union {
+//       byte b[sizeof(float)];
+//       float f;
+//     } data;
 
-    for (int i = 0; i < sizeof(float); i++)
-    {
-      data.b[i] = Wire.read();
-    }
+//     for (int i = 0; i < sizeof(float); i++)
+//     {
+//       data.b[i] = Wire.read();
+//     }
 
-    receivedFloat = data.f;
-    dataReceived = true;
-  }
+//     receivedFloat = data.f;
+//     dataReceived = true;
+//   }
+// }
+
+void receiveEvent(int howMany){
+  int x = Wire.read();    // receive byte as an integer
+  Serial.println(x);         // print the integer
 }
-
 // Function that executes whenever data is requested by master
 void requestEvent()
 {
