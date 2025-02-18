@@ -3,7 +3,7 @@
 #include <Wire.h>
 
 volatile bool dataReceived = false;
-volatile char receivedData[32]; // Buffer to hold received data
+volatile float receivedFloat = 0.0;
 volatile int receivedLength = 0;
 
 #define PIN_DIR 10
@@ -137,16 +137,9 @@ void loop()
   if (dataReceived)
   {
     dataReceived = false;
-    Serial.print("Received: ");
-
-    Serial.print(receivedData[0]);
-    command = receivedData[0];
-    Serial.print(" ");
-    for (int i = 1; i < receivedLength; i++)
-    {
-      Serial.print(receivedData[i]);
-    }
-    Serial.println();
+    Serial.print("Received float: ");
+    Serial.println(receivedFloat);
+    Vcons = int(receivedFloat);
   }
   switch (command)
   { // pour regler les parametres
@@ -198,13 +191,19 @@ void loop()
 // Function that executes whenever data is received from master
 void receiveEvent(int howMany)
 {
-  receivedLength = 0;
-  while (Wire.available())
+  if (howMany == sizeof(float))
   {
-    receivedData[receivedLength++] = Wire.read(); // Receive byte as a character
-  }
-  if (receivedLength > 1)
-  {
+    union {
+      byte b[sizeof(float)];
+      float f;
+    } data;
+
+    for (int i = 0; i < sizeof(float); i++)
+    {
+      data.b[i] = Wire.read();
+    }
+
+    receivedFloat = data.f;
     dataReceived = true;
   }
 }

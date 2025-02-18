@@ -5,6 +5,7 @@ import math
 
 import smbus #type: ignore #ignore the module could not be resolved error because it is a linux only module
 import time
+import struct
 
 # Create an SMBus instance
 bus = smbus.SMBus(1)  # 1 indicates /dev/i2c-1
@@ -36,16 +37,21 @@ angle_degre=0
 pwm_prop = HardwarePWM(pwm_channel=0, hz=50, chip=2) #use chip 2 on pi 5 in accordance with the documentation
 pwm_prop.start(pwm_stop_prop)
 
-def write_data(int):
-    # Convert string to list of ASCII values
+def write_data(float_data):
+    bus.write_i2c_block_data(SLAVE_ADDRESS, 0, [float_data])
     
-    bus.write_i2c_block_data(SLAVE_ADDRESS, 0, [int])
+def read_data(num_floats=3):
 
-def read_data(length):
+    # Each float is 4 bytes
+    length = num_floats * 4
     # Read a block of data from the slave
     data = bus.read_i2c_block_data(SLAVE_ADDRESS, 0, length)
-    # Convert list of ASCII values to string
-    return ''.join(chr(byte) for byte in data)
+    # Convert the byte data to floats
+    if len(data) >= length:
+        float_values = struct.unpack('f' * num_floats, bytes(data[:length]))
+        return list(float_values)
+    else:
+        raise ValueError("Not enough data received from I2C bus")
 
 def set_vitesse_m_s(vitesse_m_s):
     if vitesse_m_s > vitesse_max_m_s_soft :
@@ -53,7 +59,7 @@ def set_vitesse_m_s(vitesse_m_s):
     elif vitesse_m_s < -vitesse_max_m_s_hard :
         vitesse_m_s = -vitesse_max_m_s_hard
     vitesse_mm_s= vitesse_m_s*1000
-    write_data(int(vitesse_mm_s))
+    write_data(float(vitesse_mm_s))
         
 def recule():
     set_vitesse_m_s(-vitesse_max_m_s_hard)
