@@ -1,4 +1,4 @@
 #!/bin/bash
-mkdir /home/intech/test
-
-python3 -m venv autotechenv
+cd CoVAPSy
+git pull
+python /home/intech/CoVAPSy/src/HL/main.py
