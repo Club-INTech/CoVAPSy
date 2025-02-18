@@ -39,6 +39,7 @@ pwm_prop.start(pwm_stop_prop)
 
 def write_data(float_data):
     # Convert the float to bytes
+    print(float_data)
     byte_data = struct.pack('f', float_data)
     # Convert the bytes to a list of integers
     int_data = list(byte_data)
