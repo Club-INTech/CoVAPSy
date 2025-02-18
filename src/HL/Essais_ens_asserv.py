@@ -65,7 +65,7 @@ def set_vitesse_m_s(vitesse_m_s):
     elif vitesse_m_s < -vitesse_max_m_s_hard :
         vitesse_m_s = -vitesse_max_m_s_hard
     vitesse_mm_s= vitesse_m_s*1000
-    write_data(float(vitesse_mm_s))
+    write_data(int(vitesse_mm_s))
         
 def recule():
     set_vitesse_m_s(-vitesse_max_m_s_hard)
