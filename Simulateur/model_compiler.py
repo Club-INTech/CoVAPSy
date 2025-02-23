@@ -26,7 +26,7 @@ print(sb_model.policy)
 
 
 model = nn.Sequential(
-    sb_model.policy.features_extractor,
+    sb_model.policy.features_extractor.net,
     sb_model.policy.mlp_extractor.policy_net,
     sb_model.policy.action_net
 ).to("cpu")

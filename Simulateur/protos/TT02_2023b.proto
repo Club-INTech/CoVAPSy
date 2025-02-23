@@ -13,6 +13,8 @@ PROTO TT02_2023b [
   field SFString   window          "<generic>"             # Is `Robot.window`.
   field SFBool     synchronization TRUE                    # Is `Robot.synchronization`.
   field SFColor    color           0.69 0.0 1.0            # Is `Material.diffuseColor`.
+  field SFInt32    lidar_horizontal_resolution 1080         # Is `Lidar.horizontalResolution`.
+  field SFInt32    camera_horizontal_resolution 1640        # Is `Camera.horizontalResolution`.
 ]
 {
   Car {
@@ -70,6 +72,15 @@ PROTO TT02_2023b [
         translation 0.22 0 0.095
         rotation 0 0 1 0
         name "Hokuyo"
+        horizontalResolution IS lidar_horizontal_resolution
+      }
+      Camera {
+        translation 0.11 0 0.11
+        rotation 0 0 1 0
+        name "RASPI_Camera_V2"
+        fieldOfView            1.085594794740473
+        width                  IS camera_horizontal_resolution
+        height                 1
       }
       TouchSensor {
         translation 0.14 0 0.005

@@ -31,16 +31,9 @@ sys.path.append(controllers_path)
 from config import *
 
 import matplotlib.pyplot as plt
-#plt.ion()
-# fig, ax = plt.subplots()
-# line, = ax.plot([], [])
-# plt.xlim(-lidar_max_range, lidar_max_range)
-# plt.ylim(-lidar_max_range, lidar_max_range)
-# plt.scatter(0, 0, c="red", marker="+")
-
 
 def log(s: str):
-    if DOLOG:
+    if B_DEBUG:
         print(s, file=open("/tmp/autotech/logs", "a"))
 
 
@@ -118,14 +111,10 @@ class WebotsVehicleGymEnvironment(gym.Env):
         self.fifo_r = open(f"/tmp/autotech/serverto{simulation_rank}.pipe", "rb")
 
         # Last data received from the car
-        self.last_data = np.zeros(lidar_horizontal_resolution + n_sensors, dtype=np.float32)
+        self.last_data = np.zeros(n_sensors + lidar_horizontal_resolution + camera_horizontal_resolution, dtype=np.float32)
 
         self.translation_field = supervisor.getFromDef(f"TT02_{self.vehicle_rank}").getField("translation") # may cause access issues ...
         self.rotation_field = supervisor.getFromDef(f"TT02_{self.vehicle_rank}").getField("rotation") # may cause access issues ...
-
-        box_min = np.zeros(n_sensors + lidar_horizontal_resolution)
-        box_max = np.ones(n_sensors + lidar_horizontal_resolution)
-        self.observation_space = gym.spaces.Box(box_min, box_max, dtype=np.float32) #Etat venant du LIDAR
 
     # returns the lidar data of all vehicles
     def observe(self):
@@ -145,13 +134,10 @@ class WebotsVehicleGymEnvironment(gym.Env):
 
             vehicle = supervisor.getFromDef(f"TT02_{self.vehicle_rank}")
 
+            self.checkpoint_manager.reset()
             trans = self.checkpoint_manager.getTranslation()
             rot = self.checkpoint_manager.getRotation()
 
-            # trans[0] -= math.cos(rot[3]) * 0.05
-            # trans[1] -= math.sin(rot[3]) * 0.05
-
-            self.checkpoint_manager.reset()
             self.translation_field.setSFVec3f(trans)
             self.rotation_field.setSFRotation(rot)
             self.checkpoint_manager.update()

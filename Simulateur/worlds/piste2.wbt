@@ -5,6 +5,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/project
 IMPORTABLE EXTERNPROTO "../protos/TT02_2023b.proto"
 
 WorldInfo {
+  basicTimeStep 25.0
 }
 Viewpoint {
   orientation -0.15612198054631546 0.9765966041367921 -0.1479357968132854 1.0925600380817375

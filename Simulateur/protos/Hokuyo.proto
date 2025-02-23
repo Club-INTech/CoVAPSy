@@ -6,6 +6,7 @@ PROTO Hokuyo [
   field SFVec3f    translation   0 0 0.031
   field SFRotation rotation      0 0 1 0
   field SFString   name          "Hokuyo"
+  field SFInt32    horizontalResolution 1080
 ]
 {
   Lidar {
@@ -55,12 +56,13 @@ PROTO Hokuyo [
       mass 0.2
     }
     fieldOfView 4.71238898038469
-    horizontalResolution 1080
+    horizontalResolution IS horizontalResolution
     numberOfLayers 1
     near 0.020000
-    defaultFrequency 12
+    defaultFrequency 40
+    maxFrequency 40
     minRange 0.100000
-    maxRange 12.000000
+    maxRange 30.000000
     noise 0.000833
     resolution 0.010000
     type "fixed"

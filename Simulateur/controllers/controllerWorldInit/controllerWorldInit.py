@@ -16,7 +16,7 @@ from config import *
 
 
 
-def create_nodes(supervisor: Supervisor, n_vehicles: int, lidar_horizontal_resolution: int, lidar_max_range: float):
+def create_nodes(supervisor: Supervisor, n_vehicles: int):
     """
     Creates n_vehicles vehicles in the simulation
     for each vehicle, create an emitter and a receiver in the supervisor
@@ -45,6 +45,8 @@ def create_nodes(supervisor: Supervisor, n_vehicles: int, lidar_horizontal_resol
             name "TT02_{i}"
             controller "controllerVehicleDriver"
             color 0.5 0 0.6
+            lidar_horizontal_resolution {lidar_horizontal_resolution}
+            camera_horizontal_resolution {camera_horizontal_resolution}
         }}
         """
         root_children_field.importMFNodeFromString(-1, proto_string)
@@ -52,4 +54,4 @@ def create_nodes(supervisor: Supervisor, n_vehicles: int, lidar_horizontal_resol
 
 if __name__ == "__main__":
     S = Supervisor()
-    create_nodes(S, n_vehicles, lidar_horizontal_resolution, lidar_max_range)
+    create_nodes(S, n_vehicles)

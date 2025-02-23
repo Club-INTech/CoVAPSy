@@ -2,6 +2,7 @@ import os
 import time
 from typing import *
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -16,13 +17,14 @@ import gymnasium as gym
 
 from config import *
 from extractors.CNN1DExtractor import CNN1DExtractor
+from extractors.TemporalResNetExtractor import TemporalResNetExtractor
+
+if B_DEBUG: from DynamicActionPlotCallback import DynamicActionPlotDistributionCallback
 
 
 def log(s: str):
-    if DOLOG:
+    if B_DEBUG:
         print(s, file=open("/tmp/autotech/logs", "a"))
-
-
 
 class WebotsSimulationGymEnvironment(gym.Env):
     """
@@ -35,10 +37,17 @@ class WebotsSimulationGymEnvironment(gym.Env):
     def __init__(self, simulation_rank: int):
         super().__init__()
         self.simulation_rank = simulation_rank
-        box_min = np.zeros(n_sensors + lidar_horizontal_resolution)
-        box_max = np.ones(n_sensors + lidar_horizontal_resolution)
-        self.observation_space = gym.spaces.Box(box_min, box_max, dtype=np.float32) #Etat venant du LIDAR
-        self.action_space = gym.spaces.MultiDiscrete([n_actions_steering, n_actions_speed]) #actions disponibles
+        lidar_min = np.zeros([context_size, lidar_horizontal_resolution], dtype=np.float32)
+        lidar_max = np.ones([context_size, lidar_horizontal_resolution], dtype=np.float32) * 30
+
+        camera_min = -np.ones([context_size, camera_horizontal_resolution], dtype=np.float32)
+        camera_max = np.ones([context_size, camera_horizontal_resolution], dtype=np.float32)
+
+        box_min = np.concatenate([lidar_min, camera_min], axis=1)
+        box_max = np.concatenate([lidar_max, camera_max], axis=1)
+
+        self.observation_space = gym.spaces.Box(box_min, box_max, dtype=np.float32)
+        self.action_space = gym.spaces.MultiDiscrete([n_actions_steering, n_actions_speed])
 
         if not os.path.exists("/tmp/autotech"):
             os.mkdir("/tmp/autotech")
@@ -64,7 +73,7 @@ class WebotsSimulationGymEnvironment(gym.Env):
         # basically useless function
 
         # lidar data
-        obs = np.zeros(n_sensors + lidar_horizontal_resolution)
+        self.context = obs = np.zeros([context_size, (lidar_horizontal_resolution + camera_horizontal_resolution)], dtype=np.float32)
         info = {}
         return obs, info
 
@@ -74,8 +83,8 @@ class WebotsSimulationGymEnvironment(gym.Env):
         self.fifo_w.flush()
 
         # communication with the supervisor
-        obs         = np.frombuffer(self.fifo_r.read(np.dtype(np.float32).itemsize * (n_sensors + lidar_horizontal_resolution)), dtype=np.float32) # array
-        log(f"SERVER{self.simulation_rank} : received {obs=}")
+        cur_state   = np.frombuffer(self.fifo_r.read(np.dtype(np.float32).itemsize * (n_sensors + lidar_horizontal_resolution + camera_horizontal_resolution)), dtype=np.float32)
+        log(f"SERVER{self.simulation_rank} : received {cur_state=}")
         reward      = np.frombuffer(self.fifo_r.read(np.dtype(np.float32).itemsize), dtype=np.float32)[0] # scalar
         log(f"SERVER{self.simulation_rank} : received {reward=}")
         done        = np.frombuffer(self.fifo_r.read(np.dtype(np.bool).itemsize), dtype=np.bool)[0] # scalar
@@ -84,8 +93,7 @@ class WebotsSimulationGymEnvironment(gym.Env):
         log(f"SERVER{self.simulation_rank} : received {truncated=}")
         info        = {}
 
-        obs = np.nan_to_num(obs, nan=0., posinf=10.)
-        reward = np.nan_to_num(reward, nan=0., posinf=10.)
+        self.context = obs = np.concatenate([self.context[1:], np.nan_to_num(cur_state[n_sensors:], nan=0., posinf=30.)[None]])
 
         return obs, reward, done, truncated, info
 
@@ -95,7 +103,7 @@ if __name__ == "__main__":
         os.mkdir("/tmp/autotech/")
 
     os.system('if [ -n "$(ls /tmp/autotech)" ]; then rm /tmp/autotech/*; fi')
-    if DOLOG:
+    if B_DEBUG:
         print("Webots started", file=open("/tmp/autotech/logs", "w"))
 
     def make_env(rank: int):
@@ -104,26 +112,27 @@ if __name__ == "__main__":
 
     envs = SubprocVecEnv([lambda rank=rank : make_env(rank) for rank in range(n_simulations)])
 
-    ExtractorClass = CNN1DExtractor
+    ExtractorClass = TemporalResNetExtractor
 
     policy_kwargs = dict(
         features_extractor_class=ExtractorClass,
         features_extractor_kwargs=dict(
-            n_sensors=n_sensors,
+            context_size=context_size,
             lidar_horizontal_resolution=lidar_horizontal_resolution,
-            device=device,
+            camera_horizontal_resolution=camera_horizontal_resolution,
+            device=device
         ),
         activation_fn=nn.ReLU,
-        net_arch=[512, 256, 256, 128]
+        net_arch=[1024, 1024],
     )
 
 
     ppo_args = dict(
-        n_steps=2048, # usually 2048 or 1024
+        n_steps=2048,
         n_epochs=10,
-        batch_size=512,
+        batch_size=256,
         learning_rate=3e-4,
-        gamma=0.99, # calculated so that discounts by 1/2 every T seconds
+        gamma=0.99,
         verbose=1,
         normalize_advantage=True,
         device=device
@@ -155,7 +164,7 @@ if __name__ == "__main__":
             policy_kwargs=policy_kwargs
         )
         i = int(model_name.rstrip(".zip")) + 1
-        print("----- Model found, loading it -----")
+        print(f"----- Model found, loading {model_name} -----")
 
     else:
         model = PPO(
@@ -192,6 +201,10 @@ if __name__ == "__main__":
     # keep the process running and the fifo open
 
     while True:
-        model.learn(total_timesteps=100_000)
+        if B_DEBUG:
+            model.learn(total_timesteps=100_000, callback=DynamicActionPlotDistributionCallback())
+        else:
+            model.learn(total_timesteps=100_000)
+
         model.save(save_path + str(i))
         i += 1

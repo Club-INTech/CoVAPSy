@@ -23,6 +23,10 @@ class VehicleDriver(Driver):
         self.lidar.enable(self.sensorTime)
         self.lidar.enablePointCloud()
 
+        # Camera
+        self.camera = self.getDevice("RASPI_Camera_V2")
+        self.camera.enable(self.sensorTime)
+
         # Checkpoint sensor
         self.touch_sensor = self.getDevice("touch_sensor")
         self.touch_sensor.enable(self.sensorTime)
@@ -40,9 +44,22 @@ class VehicleDriver(Driver):
     #Vérification de l"état de la voiture
     def observe(self):
         try:
+            sensor_data = [np.array(self.touch_sensor.getValue(), dtype=np.float32)]
+
+            lidar_data = np.array(self.lidar.getRangeImage(), dtype=np.float32)
+
+            camera_data = np.array(self.camera.getImageArray(), dtype=np.float32)
+            # shape = (1080, 1, 3)
+            camera_data = camera_data.transpose(1, 2, 0)[0]
+            # shape = (3, 1080)
+            camera_data = (camera_data[0] >= camera_data[1]).astype(np.float32) # red >= green
+            # shape = (1080,)
+            camera_data = camera_data * 2 - 1 # red -> 1, green -> -1
+
             return np.concatenate([
-                [np.array(self.touch_sensor.getValue(), dtype=np.float32)],
-                np.array(self.lidar.getRangeImage(), dtype=np.float32)
+                sensor_data,
+                lidar_data,
+                camera_data
             ])
         except:
             #En cas de non retour lidar
@@ -62,9 +79,17 @@ class VehicleDriver(Driver):
                 self.receiver.nextPacket()
             self.last_data = np.frombuffer(self.receiver.getBytes(), dtype=np.float32)
 
-        action_steeering, action_speed = self.last_data
+        action_steering, action_speed = self.last_data
 
-        self.setSteeringAngle(action_steeering)
+        cur_angle = self.getSteeringAngle()
+        freq = 40 # Hz
+        omega = 20 # rad/s (max angular speed of the steering servo)
+        # b_clipped = abs(action_steering - cur_angle) > omega / freq
+        # if b_clipped:
+        #     print("clipped ")
+        action_steering = cur_angle + np.clip(action_steering - cur_angle, -omega / freq, omega / freq)
+
+        self.setSteeringAngle(action_steering)
         self.setCruisingSpeed(action_speed)
 
         return super().step()
