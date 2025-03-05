@@ -1,13 +1,19 @@
+
+from picamera2 import Picamera2
 import cv2 as cv
 import numpy as np
 
 
-cap = cv.VideoCapture(0)
-
+#cap = cv.VideoCapture(0)
+picam2 = Picamera2()
+picam2.preview_configuration.main.size = (640, 480)  # Set resolution
+picam2.preview_configuration.main.format = "RGB888"
+picam2.configure("preview")
+picam2.start()
 while(True):
-
+    frame = picam2.capture_array()
     # Take each frame
-    _, frame = cap.read()
+    #_, frame = cap.read()
     # Convert BGR to HSV
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
@@ -74,5 +80,6 @@ while(True):
     if cv.waitKey(5) & 0xFF == ord('q'):
         break
 
-cap.release()
+#cap.release()
+picam2.stop()
 cv.destroyAllWindows()
