@@ -129,7 +129,7 @@ class Car():
     
         if len(small_distances) > 2:
             direction = 18 if min_index < 540 else -18
-            self.set_direction_degre(direction) #TODO: change when camera backup is implemented
+            self.set_direction_degre(-direction) #TODO: change when camera backup is implemented
             return True
         return False
 
