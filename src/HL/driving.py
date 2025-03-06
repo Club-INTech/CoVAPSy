@@ -5,6 +5,7 @@ import onnxruntime as ort
 from scipy.special import softmax
 import numpy as np
 from gpiozero import LED, Button
+from scipy.ndimage import zoom
 import os
 
 
@@ -70,6 +71,8 @@ class Car():
         self.lidar.stop()
         self.lidar.startContinuous(0, 1080)
 
+        self.ai_context = np.zeros([2, 128, 128], dtype=np.float32)
+
     def set_vitesse_m_s(self, vitesse_m_s):
         if vitesse_m_s > self.vitesse_max_m_s_soft:
             vitesse_m_s = self.vitesse_max_m_s_soft
@@ -134,7 +137,9 @@ class Car():
         return False
 
     def ai_update(self, lidar_data):
-        lidar_data = np.array(lidar_data, dtype=np.float32)
+        lidar_data = zoom(lidar_data.astype(np.float32), 128/1080)
+        self.ai_context[0] = np.concat([self.ai_context[0, 1:], lidar_data[None]])
+
         # 2 vectors direction and speed. direction is between hard left at index 0 and hard right at index 1. speed is between min speed at index 0 and max speed at index 1
         vect = self.ai_session.run(None, {'input': lidar_data[None]})[0][0]
 
@@ -151,7 +156,7 @@ class Car():
     def main(self):
         # récupération des données du lidar. On ne prend que les 1080 premières valeurs et on ignore la dernière par facilit" pour l'ia
         
-        lidar_data = self.lidar.rDistance[:1080]
+        lidar_data = self.lidar.rDistance
         angle, vitesse = self.ai_update(lidar_data)
         self.set_direction_degre(angle)
         self.set_vitesse_m_s(vitesse)
