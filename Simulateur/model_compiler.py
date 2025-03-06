@@ -2,6 +2,11 @@ import os
 from stable_baselines3 import PPO
 import torch.nn as nn
 import torch
+from config import *
+
+from extractors.CNN1DExtractor import CNN1DExtractor
+from extractors.TemporalResNetExtractor import TemporalResNetExtractor
+
 
 ExtractorClass = "CNN1DExtractor"
 save_path = __file__.rsplit("/", 1)[0] + "/checkpoints/" + ExtractorClass + "/"
@@ -17,6 +22,20 @@ if not valid_files:
 model_name = max(
     valid_files,
     key=lambda x : int(x.rstrip(".zip"))
+)
+
+ExctractorClass = TemporalResNetExtractor
+
+policy_kwargs = dict(
+    features_extractor_class=ExtractorClass,
+    features_extractor_kwargs=dict(
+        context_size=context_size,
+        lidar_horizontal_resolution=lidar_horizontal_resolution,
+        camera_horizontal_resolution=camera_horizontal_resolution,
+        device=device
+    ),
+    activation_fn=nn.ReLU,
+    net_arch=[1024, 1024],
 )
 
 print(f"Loading model {save_path + model_name}")
