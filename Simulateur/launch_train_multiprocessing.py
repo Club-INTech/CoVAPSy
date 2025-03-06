@@ -207,4 +207,26 @@ if __name__ == "__main__":
             model.learn(total_timesteps=100_000)
 
         model.save(save_path + str(i))
+
+
+        true_model = nn.Sequential(
+            model.policy.features_extractor.net,
+            model.policy.mlp_extractor.policy_net,
+            model.policy.action_net
+        ).to("cpu")
+
+        x = torch.randn(1, 1080)
+        print(x.shape)
+        print(model(x).shape)
+
+        # save as onnx
+        torch.onnx.export(
+            true_model,
+            x,
+            "model.onnx",
+            input_names=["input"],
+            output_names=["output"],
+            dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}}
+        )
+
         i += 1
