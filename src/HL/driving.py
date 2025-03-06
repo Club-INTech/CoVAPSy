@@ -160,10 +160,12 @@ class Car():
         print("Main")
         lidar_data = self.lidar.rDistance
         angle, vitesse = self.ai_update(lidar_data)
+        print("ai done")
         self.set_direction_degre(angle)
         self.set_vitesse_m_s(vitesse)
         if self.has_Crashed():
             self.recule()
+        print("main done")
 
 
 
