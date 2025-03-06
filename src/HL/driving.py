@@ -154,6 +154,8 @@ class Car():
         angle, vitesse = self.ai_update(lidar_data)
         self.set_direction_degre(angle)
         self.set_vitesse_m_s(vitesse)
+        while self.has_Crashed():
+            self.recule()
 
 
 
