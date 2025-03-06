@@ -115,13 +115,13 @@ class Car():
         print("Arrêt du moteur")
         self.lidar.stop()
         # exit() #not to be used in prodution/library? https://www.geeksforgeeks.org/python-exit-commands-quit-exit-sys-exit-and-os-_exit/
-    
+
     def has_Crashed(self):
         small_indices = []
         small_distances = []
         min_distance = float("inf")
         min_index = None
-    
+
         for index, distance in enumerate(self.lidar.rDistance):
             if 0 < distance < CRASH_DIST:
                 small_indices.append(index)
@@ -129,7 +129,7 @@ class Car():
             if 0 < distance < min_distance:
                 min_distance = distance
                 min_index = index
-    
+
         if len(small_distances) > 2:
             direction = 18 if min_index < 540 else -18
             self.set_direction_degre(-direction) #TODO: change when camera backup is implemented
@@ -137,6 +137,7 @@ class Car():
         return False
 
     def ai_update(self, lidar_data):
+        t = time.time()
         lidar_data = zoom(lidar_data.astype(np.float32), 128/1080)
         self.ai_context[0] = np.concatenate([self.ai_context[0, 1:], lidar_data[None]])
 
@@ -151,11 +152,12 @@ class Car():
         # moyenne pondérée des vitesses
         vitesse = sum(self.lookup_prop*vect_prop)
 
+        print("AI time", time.time()-t)
         return -angle, vitesse
 
     def main(self):
         # récupération des données du lidar. On ne prend que les 1080 premières valeurs et on ignore la dernière par facilit" pour l'ia
-        
+
         lidar_data = self.lidar.rDistance
         angle, vitesse = self.ai_update(lidar_data)
         self.set_direction_degre(angle)
@@ -179,9 +181,8 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         GR86.stop()
         print("Programme arrêté par l'utilisateur")
-        
+
     except Exception as e: # catch all exceptions to stop the car
         GR86.stop()
         print("Erreur inconnue")
         raise e # re-raise the exception to see the error message
-    
