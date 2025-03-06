@@ -14,7 +14,7 @@ class Compressor(nn.Module):
         self.conv = nn.Conv2d(2, 64, kernel_size=7, stride=2, padding=3, device=device)
         self.bn = nn.BatchNorm2d(64, device=device)
         self.relu = nn.ReLU()
-        self.dropout = nn.Dropout2d(0.5)
+        self.dropout = nn.Dropout2d(0.3)
         self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -48,7 +48,7 @@ class ResidualBlock(nn.Module):
         self.bn1 = nn.BatchNorm2d(out_channels, device=device)
         self.bn2 = nn.BatchNorm2d(out_channels, device=device)
         self.relu = nn.ReLU()
-        self.dropout = nn.Dropout2d(0.5)
+        self.dropout = nn.Dropout2d(0.3)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         #print("data to work on: ", x.shape)
@@ -82,22 +82,22 @@ class TemporalResNetExtractor(BaseFeaturesExtractor):
             # shape = [batch_size, 64, 32, 32]
 
             ResidualBlock(64, 64, device=device),
-            ResidualBlock(64, 64, device=device),
-            ResidualBlock(64, 64, device=device),
+            #ResidualBlock(64, 64, device=device),
+            #ResidualBlock(64, 64, device=device),
             # shape = [batch_size, 64, 32, 32]
 
             ResidualBlock(64, 128, downsample=True, device=device),
             ResidualBlock(128, 128, device=device),
-            ResidualBlock(128, 128, device=device),
+            #ResidualBlock(128, 128, device=device),
             # shape = [batch_size, 128, 16, 16]
 
             ResidualBlock(128, 256, downsample=True, device=device),
             ResidualBlock(256, 256, device=device),
-            ResidualBlock(256, 256, device=device),
+            #ResidualBlock(256, 256, device=device),
             # shape = [batch_size, 256, 8, 8]
 
-            nn.AvgPool2d(8), # SO THIS IS 4 INSTEAD OF 8
-            # shape = [batch_size, 256, 1, 1]
+            nn.AvgPool2d(8),
+            # shape = [batch_size, 256, 4, 4]
 
             nn.Flatten(),
             # shape = [batch_size, 256]
