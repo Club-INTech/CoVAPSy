@@ -151,7 +151,7 @@ class Car():
         # moyenne pondérée des vitesses
         vitesse = sum(self.lookup_prop*vect_prop)
 
-        return angle, vitesse
+        return -angle, vitesse
 
     def main(self):
         # récupération des données du lidar. On ne prend que les 1080 premières valeurs et on ignore la dernière par facilit" pour l'ia
