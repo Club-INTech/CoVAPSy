@@ -138,7 +138,7 @@ class Car():
 
     def ai_update(self, lidar_data):
         lidar_data = zoom(lidar_data.astype(np.float32), 128/1080)
-        self.ai_context[0] = np.concat([self.ai_context[0, 1:], lidar_data[None]])
+        self.ai_context[0] = np.concatenate([self.ai_context[0, 1:], lidar_data[None]])
 
         # 2 vectors direction and speed. direction is between hard left at index 0 and hard right at index 1. speed is between min speed at index 0 and max speed at index 1
         vect = self.ai_session.run(None, {'input': lidar_data[None]})[0][0]
