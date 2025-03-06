@@ -26,6 +26,17 @@ model_name = max(
 
 ExctractorClass = TemporalResNetExtractor
 
+
+ppo_args = dict(
+    n_steps=2048,
+    n_epochs=10,
+    batch_size=512,
+    learning_rate=3e-4,
+    gamma=0.99,
+    verbose=1,
+    normalize_advantage=True,
+    device=device
+)
 policy_kwargs = dict(
     features_extractor_class=ExtractorClass,
     features_extractor_kwargs=dict(
@@ -39,7 +50,7 @@ policy_kwargs = dict(
 )
 
 print(f"Loading model {save_path + model_name}")
-sb_model = PPO.load(save_path + model_name, policy_kwargs=policy_kwargs)
+sb_model = PPO.load(save_path + model_name, **ppo_args, policy_kwargs=policy_kwargs)
 
 print(sb_model.policy)
 
