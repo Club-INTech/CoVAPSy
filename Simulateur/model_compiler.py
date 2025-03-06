@@ -39,7 +39,7 @@ policy_kwargs = dict(
 )
 
 print(f"Loading model {save_path + model_name}")
-sb_model = PPO.load(save_path + model_name)
+sb_model = PPO.load(save_path + model_name, **ppo_args, policy_kwargs=policy_kwargs)
 
 print(sb_model.policy)
 
