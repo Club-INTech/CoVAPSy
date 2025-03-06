@@ -93,8 +93,8 @@ class Car():
         time.sleep(0.2)
         self.set_vitesse_m_s(0)
         time.sleep(0.2)
-        self.set_vitesse_m_s(-1.5)
-        time.sleep(0.5)
+        self.set_vitesse_m_s(-2)
+        time.sleep(1)
 
     def set_direction_degre(self, angle_degre):
         angle_pwm = self.angle_pwm_centre + self.direction * \
