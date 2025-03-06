@@ -93,7 +93,8 @@ class Car():
         time.sleep(0.2)
         self.set_vitesse_m_s(0)
         time.sleep(0.2)
-        self.set_vitesse_m_s(-1)
+        self.set_vitesse_m_s(-2)
+        time.sleep(1)
 
     def set_direction_degre(self, angle_degre):
         angle_pwm = self.angle_pwm_centre + self.direction * \
@@ -128,7 +129,7 @@ class Car():
     
         if len(small_distances) > 2:
             direction = 18 if min_index < 540 else -18
-            self.set_direction_degre(direction) #TODO: change when camera backup is implemented
+            self.set_direction_degre(-direction) #TODO: change when camera backup is implemented
             return True
         return False
 
@@ -154,6 +155,8 @@ class Car():
         angle, vitesse = self.ai_update(lidar_data)
         self.set_direction_degre(angle)
         self.set_vitesse_m_s(vitesse)
+        if self.has_Crashed():
+            self.recule()
 
 
 

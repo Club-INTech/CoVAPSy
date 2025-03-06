@@ -98,7 +98,6 @@ def Idle(): #Enable chossing between states
             text = "Ready to SSH\nIP:"+ip
         case 1: #AutoDriving mode
             text = "Auto Driving"
-            
         case 2: #Manual Driving mode
             text = "Manual Driving With PS4 Controller"
             #PS4 controller status
