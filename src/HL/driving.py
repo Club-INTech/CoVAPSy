@@ -157,16 +157,12 @@ class Car():
 
     def main(self):
         # récupération des données du lidar. On ne prend que les 1080 premières valeurs et on ignore la dernière par facilit" pour l'ia
-        print("Main")
         lidar_data = self.lidar.rDistance
         angle, vitesse = self.ai_update(lidar_data)
-        print("ai done")
         self.set_direction_degre(angle)
         self.set_vitesse_m_s(vitesse)
-        if self.has_Crashed():
-            self.recule()
-        print("main done")
-
+        #if self.has_Crashed():
+        #    self.recule()
 
 
 if __name__ == '__main__':
