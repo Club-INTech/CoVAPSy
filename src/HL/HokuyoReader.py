@@ -59,7 +59,7 @@ class HokuyoReader():
         # set out-of-range value to zero
         ns = [0 if n == 65533 else n for n in ns]
 
-        self.rDistance = np.array(ns) * 0.3 # convert to meters /!\ WARNING: CHANGED THIS BY HAND
+        self.rDistance = np.array(ns)
         self.mStep = self.startStep
         self.measuring = False
         return ns
