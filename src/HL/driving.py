@@ -141,7 +141,7 @@ class Car():
         self.ai_context[0] = np.concatenate([self.ai_context[0, 1:], lidar_data[None]])
 
         # 2 vectors direction and speed. direction is between hard left at index 0 and hard right at index 1. speed is between min speed at index 0 and max speed at index 1
-        vect = self.ai_session.run(None, {'input': lidar_data[None]})[0][0]
+        vect = self.ai_session.run(None, {'input': self.ai_context[None]})[0][0]
 
         vect_dir, vect_prop = vect[:16], vect[16:]  # split the vector in 2
         vect_dir = softmax(vect_dir)  # distribution de probabilité
