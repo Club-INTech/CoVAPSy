@@ -8,13 +8,33 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 
 
+class ChannelDependentDropout2d(nn.Module):
+    def __init__(self, p: float, inplace: bool = False):
+        super().__init__()
+        self.dropouts = nn.ModuleList([
+            nn.Dropout2d(p=q, inplace=inplace) for q in p
+        ])
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if x.dim() != 4:
+            raise ValueError("input tensor must have 4 dimensions")
+        if x.shape[1] != len(self.dropouts):
+            raise ValueError(f"input tensor has {x.shape[1]} channels, expected {len(self.dropouts)}")
+
+        return torch.cat(
+            [drop(x[:, i, :, :]) for i, drop in enumerate(self.dropouts)],
+            dim=1
+        )
+
+
 class Compressor(nn.Module):
     def __init__(self, device: str = "cpu"):
         super().__init__()
+        self.input_dropout = ChannelDependentDropout2d([0.001, 0.5], inplace=True)
         self.conv = nn.Conv2d(2, 64, kernel_size=7, stride=2, padding=3, device=device)
         self.bn = nn.BatchNorm2d(64, device=device)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout2d(0.3)
+        self.relu = nn.ReLU(inplace=True)
+        self.dropout = nn.Dropout2d(0.3, inplace=True)
         self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -47,8 +67,8 @@ class ResidualBlock(nn.Module):
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, device=device)
         self.bn1 = nn.BatchNorm2d(out_channels, device=device)
         self.bn2 = nn.BatchNorm2d(out_channels, device=device)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout2d(0.3)
+        self.relu = nn.ReLU(inplace=True)
+        self.dropout = nn.Dropout2d(0.3, inplace=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         #print("data to work on: ", x.shape)
