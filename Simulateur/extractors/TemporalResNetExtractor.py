@@ -39,6 +39,7 @@ class Compressor(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         #print("new data to compress: ", x.shape)
+        x = self.input_dropout(x)
         x = self.conv(x)
         x = self.bn(x)
         x = self.relu(x)
