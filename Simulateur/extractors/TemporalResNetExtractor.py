@@ -31,7 +31,7 @@ class Compressor(nn.Module):
     def __init__(self, device: str = "cpu"):
         super().__init__()
         # WARNING : do not use inplace=True because it would modify the rollout buffer
-        self.input_dropout = ChannelDependentDropout2d([0.001, 0.35])
+        self.input_dropout = ChannelDependentDropout2d([0.001, 0.999])
         self.conv = nn.Conv2d(2, 64, kernel_size=7, stride=2, padding=3, device=device)
         self.bn = nn.BatchNorm2d(64, device=device)
         self.relu = nn.ReLU(inplace=False)
