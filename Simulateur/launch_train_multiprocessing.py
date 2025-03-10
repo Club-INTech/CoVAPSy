@@ -201,8 +201,6 @@ if __name__ == "__main__":
     # keep the process running and the fifo open
 
     while True:
-        model.save(save_path + str(i))
-
         true_model = nn.Sequential(
             model.policy.features_extractor.net,
             model.policy.mlp_extractor.policy_net,
@@ -227,5 +225,7 @@ if __name__ == "__main__":
             model.learn(total_timesteps=100_000, callback=DynamicActionPlotDistributionCallback())
         else:
             model.learn(total_timesteps=100_000)
+
+        model.save(save_path + str(i))
 
         i += 1
