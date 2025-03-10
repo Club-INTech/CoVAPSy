@@ -206,7 +206,7 @@ if __name__ == "__main__":
             model.policy.mlp_extractor.policy_net,
             model.policy.action_net
         ).to("cpu")
-        true_model.test()
+        true_model.eval()
         x = torch.randn(1, 2, 128, 128)
 
         # save as onnx
