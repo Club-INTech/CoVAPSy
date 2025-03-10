@@ -18,7 +18,7 @@ class ChannelDependentDropout2d(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.dim() != 4:
             raise ValueError("input tensor must have 4 dimensions")
-        if x.size(1) != len(self.dropouts):
+        if x.shape[1] != len(self.dropouts):
             raise ValueError(f"input tensor has {x.shape[1]} channels, expected {len(self.dropouts)}")
 
         return torch.cat(
@@ -30,10 +30,12 @@ class ChannelDependentDropout2d(nn.Module):
 class Compressor(nn.Module):
     def __init__(self, device: str = "cpu"):
         super().__init__()
-        self.input_dropout = ChannelDependentDropout2d([0.001, 0.35], inplace=True)
+        # WARNING : do not use inplace=True because it would modify the rollout buffer
+        self.input_dropout = ChannelDependentDropout2d([0.001, 0.35])
         self.conv = nn.Conv2d(2, 64, kernel_size=7, stride=2, padding=3, device=device)
         self.bn = nn.BatchNorm2d(64, device=device)
         self.relu = nn.ReLU(inplace=True)
+        self.dropout = nn.Dropout2d(0.3, inplace=True)
         self.dropout = nn.Dropout2d(0.3, inplace=True)
         self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
