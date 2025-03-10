@@ -18,7 +18,7 @@ class ChannelDependentDropout2d(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.dim() != 4:
             raise ValueError("input tensor must have 4 dimensions")
-        if x.shape[1] != len(self.dropouts):
+        if x.size(1) != len(self.dropouts):
             raise ValueError(f"input tensor has {x.shape[1]} channels, expected {len(self.dropouts)}")
 
         return torch.cat(
