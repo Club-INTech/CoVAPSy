@@ -208,7 +208,7 @@ if __name__ == "__main__":
             model.policy.mlp_extractor.policy_net,
             model.policy.action_net
         ).to("cpu")
-
+        model.test()
         x = torch.randn(1, 2, 128, 128)
 
         # save as onnx
@@ -221,8 +221,7 @@ if __name__ == "__main__":
             dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}}
         )
         true_model.to(device)
-
-        print(f"Model loaded to {model.device}")
+        model.train()
 
         if B_DEBUG:
             model.learn(total_timesteps=100_000, callback=DynamicActionPlotDistributionCallback())
