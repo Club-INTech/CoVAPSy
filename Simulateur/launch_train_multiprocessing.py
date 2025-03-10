@@ -222,7 +222,7 @@ if __name__ == "__main__":
         )
         true_model.to(device)
 
-        print(f"Model loaded to {true_model.device} {model.device}")
+        print(f"Model loaded to {model.device}")
 
         if B_DEBUG:
             model.learn(total_timesteps=100_000, callback=DynamicActionPlotDistributionCallback())
