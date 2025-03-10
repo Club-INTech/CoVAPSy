@@ -228,5 +228,6 @@ if __name__ == "__main__":
             output_names=["output"],
             dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}}
         )
+        model.to(device)
 
         i += 1
