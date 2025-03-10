@@ -201,13 +201,7 @@ if __name__ == "__main__":
     # keep the process running and the fifo open
 
     while True:
-        if B_DEBUG:
-            model.learn(total_timesteps=100_000, callback=DynamicActionPlotDistributionCallback())
-        else:
-            model.learn(total_timesteps=100_000)
-
         model.save(save_path + str(i))
-
 
         true_model = nn.Sequential(
             model.policy.features_extractor.net,
@@ -215,9 +209,7 @@ if __name__ == "__main__":
             model.policy.action_net
         ).to("cpu")
 
-        x = torch.randn(1, 1080)
-        print(x.shape)
-        print(model(x).shape)
+        x = torch.randn(1, 2, 128, 128)
 
         # save as onnx
         torch.onnx.export(
@@ -228,6 +220,11 @@ if __name__ == "__main__":
             output_names=["output"],
             dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}}
         )
-        model.to(device)
+        true_model.to(device)
+
+        if B_DEBUG:
+            model.learn(total_timesteps=100_000, callback=DynamicActionPlotDistributionCallback())
+        else:
+            model.learn(total_timesteps=100_000)
 
         i += 1
