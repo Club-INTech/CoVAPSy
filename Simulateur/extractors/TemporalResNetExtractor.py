@@ -22,7 +22,7 @@ class ChannelDependentDropout2d(nn.Module):
             raise ValueError(f"input tensor has {x.shape[1]} channels, expected {len(self.dropouts)}")
 
         return torch.cat(
-            [drop(x[:, i, :, :]) for i, drop in enumerate(self.dropouts)],
+            [drop(x[:, i, None, :, :]) for i, drop in enumerate(self.dropouts)],
             dim=1
         )
 
@@ -30,7 +30,7 @@ class ChannelDependentDropout2d(nn.Module):
 class Compressor(nn.Module):
     def __init__(self, device: str = "cpu"):
         super().__init__()
-        self.input_dropout = ChannelDependentDropout2d([0.001, 0.5], inplace=True)
+        self.input_dropout = ChannelDependentDropout2d([0.001, 0.35], inplace=True)
         self.conv = nn.Conv2d(2, 64, kernel_size=7, stride=2, padding=3, device=device)
         self.bn = nn.BatchNorm2d(64, device=device)
         self.relu = nn.ReLU(inplace=True)
@@ -103,22 +103,22 @@ class TemporalResNetExtractor(BaseFeaturesExtractor):
             # shape = [batch_size, 64, 32, 32]
 
             ResidualBlock(64, 64, device=device),
-            #ResidualBlock(64, 64, device=device),
-            #ResidualBlock(64, 64, device=device),
+            ResidualBlock(64, 64, device=device),
+            ResidualBlock(64, 64, device=device),
             # shape = [batch_size, 64, 32, 32]
 
             ResidualBlock(64, 128, downsample=True, device=device),
             ResidualBlock(128, 128, device=device),
-            #ResidualBlock(128, 128, device=device),
+            ResidualBlock(128, 128, device=device),
             # shape = [batch_size, 128, 16, 16]
 
             ResidualBlock(128, 256, downsample=True, device=device),
             ResidualBlock(256, 256, device=device),
-            #ResidualBlock(256, 256, device=device),
+            ResidualBlock(256, 256, device=device),
             # shape = [batch_size, 256, 8, 8]
 
             nn.AvgPool2d(8),
-            # shape = [batch_size, 256, 4, 4]
+            # shape = [batch_size, 256, 1, 1]
 
             nn.Flatten(),
             # shape = [batch_size, 256]
