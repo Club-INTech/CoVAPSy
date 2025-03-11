@@ -52,17 +52,17 @@ def create_nodes(supervisor: Supervisor, n_vehicles: int):
         root_children_field.importMFNodeFromString(-1, proto_string)
 
 
-    for i in range(n_stupid_vehicles):
-        proto_string = f"""
-        DEF TT02_{i} TT02_2023b {{
-            name "TT02_{i}"
-            controller "controller_violet"
-            color {" ".join(np.random.rand(3) * 0.8)}
-            lidar_horizontal_resolution {lidar_horizontal_resolution}
-            camera_horizontal_resolution {camera_horizontal_resolution}
-        }}
-        """
-        root_children_field.importMFNodeFromString(-1, proto_string)
+    # for i in range(n_stupid_vehicles):
+    #     proto_string = f"""
+    #     DEF TT02_{i} TT02_2023b {{
+    #         name "TT02_{i}"
+    #         controller "controller_violet"
+    #         color {" ".join(np.random.rand(3) * 0.8)}
+    #         lidar_horizontal_resolution {lidar_horizontal_resolution}
+    #         camera_horizontal_resolution {camera_horizontal_resolution}
+    #     }}
+    #     """
+    #     root_children_field.importMFNodeFromString(-1, proto_string)
 
 
 if __name__ == "__main__":
