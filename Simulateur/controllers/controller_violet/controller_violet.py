@@ -19,10 +19,6 @@ lidar = Lidar("Hokuyo")
 lidar.enable(sensorTimeStep)
 lidar.enablePointCloud()
 
-#clavier
-keyboard = driver.getKeyboard()
-keyboard.enable(sensorTimeStep)
-
 # vitesse en km/h
 speed = 0
 maxSpeed = 28 #km/h
@@ -58,4 +54,3 @@ while driver.step() != -1:
 
     driver.setCruisingSpeed(speed)
     driver.setSteeringAngle(angle)
-    
