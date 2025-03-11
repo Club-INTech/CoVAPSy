@@ -37,18 +37,6 @@ def log(s: str):
         print(s, file=open("/tmp/autotech/logs", "a"))
 
 
-# FIFO to communnicate with the train SERVER{simulation_rank} process
-# DOES NOT WORK WHEN USING SubProcVecENV
-# simulation_rank = int(
-#     max(
-#         re.findall(
-#             r"(\d+)toserver.pipe",
-#             "\n".join(os.listdir("/tmp/autotech/")),
-#             re.MULTILINE
-#         ) or [0]
-#     )
-# )
-
 with open(f"/proc/{os.getppid()}/status") as f:
     log("youpi j'ai réussi à choper un truc I guess")
     for line in f:
