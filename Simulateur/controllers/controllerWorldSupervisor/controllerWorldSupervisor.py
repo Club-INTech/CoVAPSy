@@ -88,6 +88,8 @@ class WebotsVehicleGymEnvironment(gym.Env):
         self.vehicle_rank = vehicle_rank
         self.checkpoint_manager = CheckpointManager(supervisor, checkpoints)
 
+        self.v_min = np.random.rand()*2 + 0.5 # 0.5 to 2.5
+        self.v_max = np.random.rand()*4 + 3   # 3 to 7
         basicTimeStep = int(supervisor.getBasicTimeStep())
         self.sensorTime = basicTimeStep // 4
 
@@ -152,7 +154,7 @@ class WebotsVehicleGymEnvironment(gym.Env):
     # step function of the gym environment
     def step(self, action):
         action_steering = np.linspace(-.44, .44, n_actions_steering, dtype=np.float32)[action[0], None]
-        action_speed = np.linspace(0.5, 7.0, n_actions_speed, dtype=np.float32)[action[1], None]
+        action_speed = np.linspace(self.v_min, self.v_max, n_actions_speed, dtype=np.float32)[action[1], None]
         self.emitter.send(np.array([action_steering, action_speed], dtype=np.float32).tobytes())
 
         # we should add a beacon sensor pointing upwards to detect the beacon
