@@ -183,7 +183,6 @@ class WebotsVehicleGymEnvironment(gym.Env):
         return obs, reward, done, truncated, {}
 
 
-#----------------Programme principal--------------------
 def main():
 
     envs = [WebotsVehicleGymEnvironment(i) for i in range(n_vehicles)]
