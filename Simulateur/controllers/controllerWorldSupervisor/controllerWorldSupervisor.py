@@ -71,10 +71,8 @@ class WebotsVehicleGymEnvironment(gym.Env):
     """
 
     def __init__(self, vehicle_rank: int):
-        #print the exported node string
-
         self.vehicle_rank = vehicle_rank
-        self.checkpoint_manager = CheckpointManager(supervisor, checkpoints)
+        self.checkpoint_manager = CheckpointManager(supervisor, checkpoints, vehicle_rank)
 
         self.v_min = np.random.rand()*2 + 0.5 # 0.5 to 2.5
         self.v_max = np.random.rand()*4 + 3   # 3 to 7
@@ -184,7 +182,45 @@ def main():
     log("-------------------------------------------------------------------")
     for i, e in enumerate(envs):
         log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : reset")
-        e.reset()
+        e.reset(i)
+
+    for i in range(n_vehicles, n_vehicles + n_stupid_vehicles):
+        supervisor \
+        .getFromDef(f"TT02_{i}") \
+        .getField("translation") \
+        .setSFVec3f([
+            [0, -0.314494, 0],
+            [0, 1.11162, 0],
+            [0.8, 2.54552, 0],
+            [1.2, 3.58779, 0],
+            [1.57, 3.58016, 0],
+            [2.2, 3.23981, 0],
+            [1.57, 2.8261, 0],
+            [1.04, 3.18851, 0],
+            [1.98, 3.6475, 0],
+            [2.5, 3.1775, 0],
+            [-3, 2.58692, 0],
+            [-2.5, 1.52457, 0],
+            [-2.2, 0.659969, 0],
+            [-1.9, 0.000799585, 0],
+            [-1, 0.0727115, 0],
+            [-1, 0.788956, 0],
+            [-1.6, 1.24749, 0],
+            [-2.5, 0.88749, 0],
+            [-3, 0.0789172, 0],
+            [2.7, -0.832859, 0],
+            [1.8, -1.79723, 0],
+            [1.6, -1.7446, 0],
+            [2.2, -1.92104, 0],
+            [3, -2.96264, 0],
+            [-2.2, -4.19027, 0],
+            [-1.6, -4.34725, 0],
+            [-1.57, -4.26858, 0],
+            [-1.4, -4.20936, 0],
+            [-0.8, -4.0021, 0],
+            [-0.3, -2.89371, 0],
+            [0, -2.01029, 0]
+        ][i])
 
 
     while supervisor.step() != -1:

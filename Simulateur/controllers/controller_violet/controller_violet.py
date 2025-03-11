@@ -6,6 +6,7 @@
 # juillet 2023
 
 
+import numpy as np
 from vehicle import Driver
 from controller import Lidar
 
@@ -19,6 +20,8 @@ lidar = Lidar("Hokuyo")
 lidar.enable(sensorTimeStep)
 lidar.enablePointCloud()
 
+touch_sensor = driver.getDevice("touch_sensor")
+
 # vitesse en km/h
 speed = 0
 maxSpeed = 28 #km/h
@@ -30,12 +33,21 @@ maxangle = 0.28 #rad (étrange, la voiture est défini pour une limite à 0.31 r
 # mise a zéro de la vitesse et de la direction
 driver.setSteeringAngle(angle)
 driver.setCruisingSpeed(speed)
-# mode manuel et mode auto desactive
-modeManuel = False
-modeAuto = False
+
 while driver.step() != -1:
     speed = driver.getTargetCruisingSpeed()
     donnees_lidar = lidar.getRangeImage()
+    sensor_data = touch_sensor.getValue()
+
+    # goes backwards
+    if sensor_data == 1:
+        backwards_duration = 1000 # ms
+        for _ in range(backwards_duration / basicTimeStep)
+            speed = -1
+            driver.setCruisingSpeed(speed)
+            driver.setSteeringAngle(0)
+            driver.step()
+
 
     speed = 3 #km/h
     #l'angle de la direction est la différence entre les mesures des rayons
