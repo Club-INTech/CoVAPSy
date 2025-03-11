@@ -52,7 +52,7 @@ def create_nodes(supervisor: Supervisor, n_vehicles: int):
         root_children_field.importMFNodeFromString(-1, proto_string)
 
 
-    for i in range(n_vehicles):
+    for i in range(n_stupid_vehicles):
         proto_string = f"""
         DEF TT02_{i} TT02_2023b {{
             name "TT02_{i}"
