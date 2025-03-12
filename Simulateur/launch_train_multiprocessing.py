@@ -94,7 +94,7 @@ class WebotsSimulationGymEnvironment(gym.Env):
         log(f"SERVER{self.simulation_rank} : received {truncated=}")
         info        = {}
 
-        cur_state = np.nan_to_num(cur_state[n_sensors:], nan=0., posinf=30.)[None]
+        cur_state = np.nan_to_num(cur_state[n_sensors:], nan=0., posinf=30.)
 
         lidar_obs = cur_state[:lidar_horizontal_resolution]
         camera_obs = cur_state[lidar_horizontal_resolution:]
