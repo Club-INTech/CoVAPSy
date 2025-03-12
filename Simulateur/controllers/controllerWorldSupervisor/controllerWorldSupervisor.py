@@ -115,14 +115,14 @@ class WebotsVehicleGymEnvironment(gym.Env):
         return self.last_data
 
     # reset the gym environment reset
-    def reset(self, seed=0):
+    def reset(self, seed=None):
         # this has to be done otherwise thec cars will shiver for a while sometimes when respawning and idk why
         if supervisor.getTime() - self.last_reset >= 1e-1:
             self.last_reset = supervisor.getTime()
 
             vehicle = supervisor.getFromDef(f"TT02_{self.vehicle_rank}")
 
-            self.checkpoint_manager.reset()
+            self.checkpoint_manager.reset(seed)
             trans = self.checkpoint_manager.getTranslation()
             rot = self.checkpoint_manager.getRotation()
 
@@ -222,7 +222,7 @@ def main():
             [0, -2.01029, 0.0391]
         ][i])
 
-
+transl
     while supervisor.step() != -1:
         log(f"CLIENT ALL : begin step")
         #Prédiction pour séléctionner une action à partir de l"observation
