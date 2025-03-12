@@ -98,7 +98,6 @@ class WebotsSimulationGymEnvironment(gym.Env):
         # apply dropout to the camera
         p = 0.5
         camera_obs *= np.random.binomial(1, 1-p, camera_obs.shape) # random values in {0, 1}
-        print(np.array([lidar_obs[None], camera_obs[None]]).shape, self.context[:, 1:].shape)
 
         self.context = obs = np.concatenate([
             self.context[:, 1:],
