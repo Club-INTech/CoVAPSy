@@ -39,9 +39,6 @@ while driver.step() != -1:
     donnees_lidar = np.nan_to_num(lidar.getRangeImage(), nan=0., posinf=30.)
     sensor_data = touch_sensor.getValue()
 
-    print(np.array(donnees_lidar).shape)
-    print(donnees_lidar)
-
     # goes backwards
     if sensor_data == 1:
         backwards_duration = 1000 # ms
