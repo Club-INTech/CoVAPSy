@@ -8,31 +8,31 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 
 
-class ChannelDependentDropout2d(nn.Module):
-    def __init__(self, p: list[float], inplace: bool = False):
-        super().__init__()
+# class ChannelDependentDropout2d(nn.Module):
+#     def __init__(self, p: list[float], inplace: bool = False):
+#         super().__init__()
 
-        self.dropouts = nn.ModuleList([
-            nn.Dropout2d(p=q, inplace=inplace) for q in p
-        ])
+#         self.dropouts = nn.ModuleList([
+#             nn.Dropout2d(p=q, inplace=inplace) for q in p
+#         ])
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if x.dim() != 4:
-            raise ValueError("input tensor must have 4 dimensions")
-        if x.shape[1] != len(self.dropouts):
-            raise ValueError(f"input tensor has {x.shape[1]} channels, expected {len(self.dropouts)}")
+#     def forward(self, x: torch.Tensor) -> torch.Tensor:
+#         if x.dim() != 4:
+#             raise ValueError("input tensor must have 4 dimensions")
+#         if x.shape[1] != len(self.dropouts):
+#             raise ValueError(f"input tensor has {x.shape[1]} channels, expected {len(self.dropouts)}")
 
-        return torch.cat(
-            [drop(x[:, i, None, :, :]) * (1-drop.p) for i, drop in enumerate(self.dropouts)],
-            dim=1
-        )
+#         return torch.cat(
+#             [drop(x[:, i, None, :, :]) * (1-drop.p) for i, drop in enumerate(self.dropouts)],
+#             dim=1
+#         )
 
 
 class Compressor(nn.Module):
     def __init__(self, device: str = "cpu"):
         super().__init__()
         # WARNING : do not use inplace=True because it would modify the rollout buffer
-        self.input_dropout = ChannelDependentDropout2d([0.001, 0.8])
+        # self.input_dropout = ChannelDependentDropout2d([0.001, 0.8])
         self.conv = nn.Conv2d(2, 64, kernel_size=7, stride=2, padding=3, device=device)
         self.bn = nn.BatchNorm2d(64, device=device)
         self.relu = nn.ReLU(inplace=True)
@@ -40,7 +40,7 @@ class Compressor(nn.Module):
         self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        #x = self.input_dropout(x)
+        # x = self.input_dropout(x)
         x = self.conv(x)
         x = self.bn(x)
         x = self.relu(x)
@@ -136,12 +136,6 @@ class TemporalResNetExtractor(BaseFeaturesExtractor):
 
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
-        lidar_obs = observations[:, None, :, :self.lidar_horizontal_resolution] # [batch_size, 1, 256, 256]
-        camera_obs = observations[:, None, :, self.lidar_horizontal_resolution:] # [batch_size, 1, 256, 256]
-
-        camera_obs *= 0
-
-        observations = torch.cat([lidar_obs, camera_obs], dim=1) # [batch_size, 2, 256, 256]
         extracted = self.net(observations)
 
         return extracted

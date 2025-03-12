@@ -73,7 +73,8 @@ class WebotsSimulationGymEnvironment(gym.Env):
         # basically useless function
 
         # lidar data
-        self.context = obs = np.zeros([context_size, (lidar_horizontal_resolution + camera_horizontal_resolution)], dtype=np.float32)
+        # this is true for lidar_horizontal_resolution = camera_horizontal_resolution
+        self.context = obs = np.zeros([2, context_size, lidar_horizontal_resolution], dtype=np.float32)
         info = {}
         return obs, info
 
@@ -93,7 +94,19 @@ class WebotsSimulationGymEnvironment(gym.Env):
         log(f"SERVER{self.simulation_rank} : received {truncated=}")
         info        = {}
 
-        self.context = obs = np.concatenate([self.context[1:], np.nan_to_num(cur_state[n_sensors:], nan=0., posinf=30.)[None]])
+        cur_state = np.nan_to_num(cur_state[n_sensors:], nan=0., posinf=30.)[None]
+
+        lidar_obs = cur_state[:self.lidar_horizontal_resolution]
+        camera_obs = cur_state[self.lidar_horizontal_resolution:]
+
+        # apply dropout to the camera
+        p = 0.5
+        camera_obs *= np.random.binomial(1, 1-p, camera_obs.shape) # random values in {0, 1}
+
+        self.context = obs = np.concatenate([
+            self.context[:, 1:],
+            [lidar_obs[None], camera_obs[None]],
+        ], axis=1)
 
         return obs, reward, done, truncated, info
 
