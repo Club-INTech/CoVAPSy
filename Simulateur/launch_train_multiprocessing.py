@@ -101,7 +101,7 @@ class WebotsSimulationGymEnvironment(gym.Env):
 
         self.context = obs = np.concatenate([
             self.context[:, 1:],
-            [lidar_obs[None], camera_obs[None]],
+            [lidar_obs[None], camera_obs[None]]
         ], axis=1)
 
         return obs, reward, done, truncated, info
