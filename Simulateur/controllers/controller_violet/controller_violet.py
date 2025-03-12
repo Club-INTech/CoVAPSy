@@ -36,9 +36,9 @@ driver.setCruisingSpeed(speed)
 
 while driver.step() != -1:
     speed = driver.getTargetCruisingSpeed()
-    donnees_lidar = lidar.getRangeImage()
+    donnees_lidar = np.nan_to_num(lidar.getRangeImage(), nan=0., posinf=30.)
     sensor_data = touch_sensor.getValue()
-    print(np.isnan(donnees_lidar).any())
+
     print(np.array(donnees_lidar).shape)
     print(donnees_lidar)
 
