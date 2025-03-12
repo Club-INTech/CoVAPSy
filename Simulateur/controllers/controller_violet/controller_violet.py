@@ -13,14 +13,14 @@ from controller import Lidar
 driver = Driver()
 
 basicTimeStep = int(driver.getBasicTimeStep())
-sensorTimeStep = 4 * basicTimeStep
 
 #Lidar
 lidar = Lidar("Hokuyo")
-lidar.enable(sensorTimeStep)
+lidar.enable(basicTimeStep)
 lidar.enablePointCloud()
 
 touch_sensor = driver.getDevice("touch_sensor")
+touch_sensor.enable(basicTimeStep)
 
 # vitesse en km/h
 speed = 0
