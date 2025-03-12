@@ -47,6 +47,8 @@ while driver.step() != -1:
         backwards_duration = 1000 # ms
         for _ in range(backwards_duration // basicTimeStep):
             speed = -1
+            angle = donnees_lidar[-32]-donnees_lidar[32]
+
             driver.setCruisingSpeed(speed)
             driver.setSteeringAngle(0)
             driver.step()
