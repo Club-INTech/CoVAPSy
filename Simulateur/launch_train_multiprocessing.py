@@ -37,14 +37,10 @@ class WebotsSimulationGymEnvironment(gym.Env):
     def __init__(self, simulation_rank: int):
         super().__init__()
         self.simulation_rank = simulation_rank
-        lidar_min = np.zeros([context_size, lidar_horizontal_resolution], dtype=np.float32)
-        lidar_max = np.ones([context_size, lidar_horizontal_resolution], dtype=np.float32) * 30
 
-        camera_min = -np.ones([context_size, camera_horizontal_resolution], dtype=np.float32)
-        camera_max = np.ones([context_size, camera_horizontal_resolution], dtype=np.float32)
-
-        box_min = np.concatenate([lidar_min, camera_min], axis=1)
-        box_max = np.concatenate([lidar_max, camera_max], axis=1)
+        # this is only true if lidar_horizontal_resolution = camera_horizontal_resolution
+        box_min = np.zeros([2, context_size, lidar_horizontal_resolution], dtype=np.float32)
+        box_max = np.ones([2, context_size, lidar_horizontal_resolution], dtype=np.float32) * 30
 
         self.observation_space = gym.spaces.Box(box_min, box_max, dtype=np.float32)
         self.action_space = gym.spaces.MultiDiscrete([n_actions_steering, n_actions_speed])
