@@ -41,7 +41,8 @@ while driver.step() != -1:
 
     # goes backwards
     if sensor_data == 1:
-        backwards_duration = 2500 # ms
+        death_count += 1
+        backwards_duration = 2000 # ms
         for _ in range(backwards_duration // basicTimeStep):
             speed = -1
             angle = np.sign(donnees_lidar[-32]-donnees_lidar[32]) * 0.3
