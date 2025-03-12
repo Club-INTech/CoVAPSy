@@ -96,8 +96,8 @@ class WebotsSimulationGymEnvironment(gym.Env):
 
         cur_state = np.nan_to_num(cur_state[n_sensors:], nan=0., posinf=30.)[None]
 
-        lidar_obs = cur_state[:self.lidar_horizontal_resolution]
-        camera_obs = cur_state[self.lidar_horizontal_resolution:]
+        lidar_obs = cur_state[:lidar_horizontal_resolution]
+        camera_obs = cur_state[lidar_horizontal_resolution:]
 
         # apply dropout to the camera
         p = 0.5
