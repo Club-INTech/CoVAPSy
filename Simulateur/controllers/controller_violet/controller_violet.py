@@ -51,8 +51,7 @@ while driver.step() != -1:
 
     speed = 3 #km/h
     #l'angle de la direction est la différence entre les mesures des rayons
-    #du lidar à (-99+18*2)=-63° et (-99+81*2)=63°
-    angle = donnees_lidar[60]-donnees_lidar[300]
+    angle = donnees_lidar[32]-donnees_lidar[-32]
 
     # clamp speed and angle to max values
     if speed > maxSpeed:
