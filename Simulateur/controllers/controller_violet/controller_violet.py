@@ -42,7 +42,7 @@ while driver.step() != -1:
     # goes backwards
     if sensor_data == 1:
         backwards_duration = 1000 # ms
-        for _ in range(backwards_duration / basicTimeStep):
+        for _ in range(backwards_duration // basicTimeStep):
             speed = -1
             driver.setCruisingSpeed(speed)
             driver.setSteeringAngle(0)
