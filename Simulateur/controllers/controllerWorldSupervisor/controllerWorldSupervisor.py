@@ -222,7 +222,6 @@ def main():
             [0, -2.01029, 0.0391]
         ][i])
 
-transl
     while supervisor.step() != -1:
         log(f"CLIENT ALL : begin step")
         #Prédiction pour séléctionner une action à partir de l"observation
