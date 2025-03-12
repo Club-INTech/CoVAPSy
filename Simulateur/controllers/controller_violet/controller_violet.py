@@ -38,6 +38,8 @@ while driver.step() != -1:
     speed = driver.getTargetCruisingSpeed()
     donnees_lidar = lidar.getRangeImage()
     sensor_data = touch_sensor.getValue()
+    print(np.is_nan(donnees_lidar).any())
+    print(donnees_lidar.shape)
 
     # goes backwards
     if sensor_data == 1:
