@@ -16,7 +16,7 @@ basicTimeStep = int(driver.getBasicTimeStep())
 
 #Lidar
 lidar = Lidar("Hokuyo")
-lidar.enable(basicTimeStep)
+lidar.enable(basicTimeStep // 4)
 lidar.enablePointCloud()
 
 touch_sensor = driver.getDevice("touch_sensor")
