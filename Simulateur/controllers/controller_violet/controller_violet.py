@@ -40,6 +40,7 @@ while driver.step() != -1:
     sensor_data = touch_sensor.getValue()
     print(np.isnan(donnees_lidar).any())
     print(np.array(donnees_lidar).shape)
+    print(donnees_lidar)
 
     # goes backwards
     if sensor_data == 1:
