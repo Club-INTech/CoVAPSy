@@ -14,11 +14,16 @@ from controller import Lidar
 driver = Driver()
 
 basicTimeStep = int(driver.getBasicTimeStep())
+sensorTime = basicTimeStep // 4
 
 #Lidar
 lidar = Lidar("Hokuyo")
-lidar.enable(basicTimeStep // 4)
+lidar.enable(sensorTime)
 lidar.enablePointCloud()
+
+# Camera
+camera = driver.getDevice("RASPI_Camera_V2")
+camera.enable(sensorTime)
 
 touch_sensor = driver.getDevice("touch_sensor")
 touch_sensor.enable(basicTimeStep)
@@ -41,10 +46,14 @@ driver.setSteeringAngle(angle)
 driver.setCruisingSpeed(speed)
 
 
-def backwards():
+def backwards(lidar_data, camera_data):
     for _ in range(backwards_duration // basicTimeStep):
         speed = -1
-        angle = np.sign(donnees_lidar[-32]-donnees_lidar[32]) * 0.3
+        avg_color = np.mean(camera_data, axis=0)
+        if avg_color[0] >= avg_color[1]:
+            angle = 0.2
+        else:
+            angle = -0.2
         driver.setCruisingSpeed(speed)
         driver.setSteeringAngle(angle)
         driver.step()
