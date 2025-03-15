@@ -88,10 +88,10 @@ while driver.step() != -1:
     speed = 3 #km/h
     #l'angle de la direction est la différence entre les mesures des rayons
     avg_color = np.mean(camera_data, axis=0)
-        if avg_color[0] >= avg_color[1]:
-            angle = 0.2
-        else:
-            angle = -0.2
+    if avg_color[0] >= avg_color[1]:
+        angle = 0.2
+    else:
+        angle = -0.2
 
     driver.setCruisingSpeed(speed)
     driver.setSteeringAngle(angle)
