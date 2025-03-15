@@ -16,17 +16,15 @@ driver = Driver()
 basicTimeStep = int(driver.getBasicTimeStep())
 sensorTime = basicTimeStep // 4
 
-#Lidar
 lidar = Lidar("Hokuyo")
 lidar.enable(sensorTime)
 lidar.enablePointCloud()
 
-# Camera
 camera = driver.getDevice("RASPI_Camera_V2")
 camera.enable(sensorTime)
 
 touch_sensor = driver.getDevice("touch_sensor")
-touch_sensor.enable(basicTimeStep)
+touch_sensor.enable(sensorTime)
 
 # vitesse en km/h
 speed = 0
