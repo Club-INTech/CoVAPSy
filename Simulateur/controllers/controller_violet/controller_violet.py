@@ -53,7 +53,7 @@ def backwards():
 def stop():
     driver.setCruisingSpeed(0)
     driver.setSteeringAngle(0)
-    for _ in range(1000 // basicTimeStep):
+    for _ in range(stop_duration // basicTimeStep):
         driver.step()
     # will be reset by the controllerWorldSupervisor.py
 
@@ -66,7 +66,7 @@ while driver.step() != -1:
     # goes backwards
     if sensor_data == 1:
         death_count += 1
-        if death_count > 10:
+        if death_count < 10:
             backwards()
             death_count = 0
         else:
