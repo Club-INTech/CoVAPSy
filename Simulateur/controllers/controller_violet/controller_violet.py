@@ -46,7 +46,7 @@ def backwards():
         speed = -1
         angle = np.sign(donnees_lidar[-32]-donnees_lidar[32]) * 0.3
         driver.setCruisingSpeed(speed)
-        driver.setSteeringAngle(0)
+        driver.setSteeringAngle(angle)
         driver.step()
 
 def stop():
@@ -66,10 +66,10 @@ while driver.step() != -1:
     if sensor_data == 1:
         death_count += 1
         if death_count < 3:
-            print("backwards")
+            print("backwards", driver.getName())
             backwards()
         else:
-            print("stop")
+            print("stop", driver.getName())
             death_count = 0
             stop()
 
