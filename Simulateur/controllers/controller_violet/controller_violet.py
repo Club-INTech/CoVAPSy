@@ -68,7 +68,9 @@ def stop():
 
 while driver.step() != -1:
     speed = driver.getTargetCruisingSpeed()
-    donnees_lidar = np.nan_to_num(lidar.getRangeImage(), nan=0., posinf=30.)
+    lidar_data = np.nan_to_num(lidar.getRangeImage(), nan=0., posinf=30.)
+    camera_data = np.nan_to_num(camera.getImage(), nan=0., posinf=30.)
+    print(camera_data.shape)
     sensor_data = touch_sensor.getValue()
 
     # goes backwards
@@ -85,16 +87,11 @@ while driver.step() != -1:
 
     speed = 3 #km/h
     #l'angle de la direction est la différence entre les mesures des rayons
-    angle = np.sign(donnees_lidar[32]-donnees_lidar[-32]) * 0.3
-    # clamp speed and angle to max values
-    if speed > maxSpeed:
-        speed = maxSpeed
-    elif speed < -1 * maxSpeed:
-        speed = -1 * maxSpeed
-    if angle > maxangle:
-        angle = maxangle
-    elif angle < -maxangle:
-        angle = -maxangle
+    avg_color = np.mean(camera_data, axis=0)
+        if avg_color[0] >= avg_color[1]:
+            angle = 0.2
+        else:
+            angle = -0.2
 
     driver.setCruisingSpeed(speed)
     driver.setSteeringAngle(angle)
