@@ -30,6 +30,40 @@ sys.path.append(controllers_path)
 
 from config import *
 
+checkpoint_positions = [
+    [-0.314494, -2.47211, 0.0391],
+    [1.11162, -2.56708, 0.0391],
+    [2.54552, -2.27446, 0.0391],
+    [3.58779, -1.38814, 0.0391],
+    [3.58016, -0.0800134, 0.0391],
+    [3.23981, 1.26309, 0.0391],
+    [2.8261, 1.99783, 0.0391],
+    [3.18851, 2.71151, 0.0391],
+    [3.6475, 4.09688, 0.0391],
+    [3.1775, 4.44688, 0.0391],
+    [2.58692, 4.5394, 0.0391],
+    [1.52457, 4.3991, 0.0391],
+    [0.659969, 3.57074, 0.0391],
+    [0.000799585, 2.90417, 0.0391],
+    [0.0727115, 1.81299, 0.0391],
+    [0.788956, 1.22248, 0.0391],
+    [1.24749, 0.288391, 0.0391],
+    [0.88749, -0.281609, 0.0391],
+    [0.0789172, -0.557653, 0.0391],
+    [-0.832859, -0.484867, 0.0391],
+    [-1.79723, 0.408769, 0.0391],
+    [-1.7446, 1.3386, 0.0391],
+    [-1.92104, 2.72452, 0.0391],
+    [-2.96264, 2.96666, 0.0391],
+    [-4.19027, 2.74619, 0.0391],
+    [-4.34725, 1.7503, 0.0391],
+    [-4.26858, 0.259482, 0.0391],
+    [-4.20936, -1.06968, 0.0391],
+    [-4.0021, -2.35518, 0.0391],
+    [-2.89371, -2.49154, 0.0391],
+    [-2.01029, -2.51669, 0.0391],
+]
+
 import matplotlib.pyplot as plt
 
 def log(s: str):
@@ -185,42 +219,14 @@ def main():
         e.reset(i)
 
     for i in range(n_vehicles, n_vehicles + n_stupid_vehicles):
-        supervisor \
-        .getFromDef(f"TT02_{i}") \
-        .getField("translation") \
-        .setSFVec3f([
-            [-0.314494, -2.47211, 0.0391],
-            [1.11162, -2.56708, 0.0391],
-            [2.54552, -2.27446, 0.0391],
-            [3.58779, -1.38814, 0.0391],
-            [3.58016, -0.0800134, 0.0391],
-            [3.23981, 1.26309, 0.0391],
-            [2.8261, 1.99783, 0.0391],
-            [3.18851, 2.71151, 0.0391],
-            [3.6475, 4.09688, 0.0391],
-            [3.1775, 4.44688, 0.0391],
-            [2.58692, 4.5394, 0.0391],
-            [1.52457, 4.3991, 0.0391],
-            [0.659969, 3.57074, 0.0391],
-            [0.000799585, 2.90417, 0.0391],
-            [0.0727115, 1.81299, 0.0391],
-            [0.788956, 1.22248, 0.0391],
-            [1.24749, 0.288391, 0.0391],
-            [0.88749, -0.281609, 0.0391],
-            [0.0789172, -0.557653, 0.0391],
-            [-0.832859, -0.484867, 0.0391],
-            [-1.79723, 0.408769, 0.0391],
-            [-1.7446, 1.3386, 0.0391],
-            [-1.92104, 2.72452, 0.0391],
-            [-2.96264, 2.96666, 0.0391],
-            [-4.19027, 2.74619, 0.0391],
-            [-4.34725, 1.7503, 0.0391],
-            [-4.26858, 0.259482, 0.0391],
-            [-4.20936, -1.06968, 0.0391],
-            [-4.0021, -2.35518, 0.0391],
-            [-2.89371, -2.49154, 0.0391],
-            [-2.01029, -2.51669, 0.0391],
-        ][i])
+        (
+            supervisor
+            .getFromDef(f"TT02_{i}")
+            .getField("translation")
+            .setSFVec3f(checkpoint_positions[i])
+        )
+
+    last_moves = [0 for _ in range(n_stupid_vehicles)]
 
     while supervisor.step() != -1:
         log(f"CLIENT ALL : begin step")
@@ -229,9 +235,11 @@ def main():
             log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : trying to read from fifo")
             action = np.frombuffer(e.fifo_r.read(np.dtype(np.int64).itemsize * 2), dtype=np.int64)
             log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : received {action=}")
+
             obs, reward, done, truncated, info = e.step(action)
 
-            if done: obs, info = e.reset()
+            if done:
+                obs, info = e.reset()
 
             log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : sending {obs=}")
             e.fifo_w.write(obs.tobytes())
@@ -242,6 +250,19 @@ def main():
             log(f"CLIENT{simulation_rank}/{e.vehicle_rank} : sending {truncated=}")
             e.fifo_w.write(truncated.tobytes())
             e.fifo_w.flush()
+
+
+        for i in range(n_stupid_vehicles):
+            tr_field = supervisor.getFromDef(f"TT02_{n_vehicles + i}").getField("translation")
+            speed = np.linalg.norm(tr_field.getSFVec3f())
+
+            if speed >= 0.01:
+                last_moves[i] = supervisor.getTime()
+
+            if supervisor.getTime() - last_moves[i]:
+                tr_field.setSFVec3f()
+
+
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ import numpy as np
 from vehicle import Driver
 from controller import Lidar
 
+
 driver = Driver()
 
 basicTimeStep = int(driver.getBasicTimeStep())
@@ -30,9 +31,32 @@ maxSpeed = 28 #km/h
 angle = 0
 maxangle = 0.28 #rad (étrange, la voiture est défini pour une limite à 0.31 rad...
 
+backwards_duration = 2000 # ms
+stop_duration = 1000 # ms
+
+death_count = 0
+
 # mise a zéro de la vitesse et de la direction
 driver.setSteeringAngle(angle)
 driver.setCruisingSpeed(speed)
+
+
+def backwards():
+    for _ in range(backwards_duration // basicTimeStep):
+        speed = -1
+        angle = np.sign(donnees_lidar[-32]-donnees_lidar[32]) * 0.3
+        print(angle)
+        driver.setCruisingSpeed(speed)
+        driver.setSteeringAngle(0)
+        driver.step()
+
+def stop():
+    driver.setCruisingSpeed(0)
+    driver.setSteeringAngle(0)
+    for _ in range(1000 // basicTimeStep):
+        driver.step()
+    # will be reset by the controllerWorldSupervisor.py
+
 
 while driver.step() != -1:
     speed = driver.getTargetCruisingSpeed()
@@ -42,14 +66,11 @@ while driver.step() != -1:
     # goes backwards
     if sensor_data == 1:
         death_count += 1
-        backwards_duration = 2000 # ms
-        for _ in range(backwards_duration // basicTimeStep):
-            speed = -1
-            angle = np.sign(donnees_lidar[-32]-donnees_lidar[32]) * 0.3
-            print(angle)
-            driver.setCruisingSpeed(speed)
-            driver.setSteeringAngle(0)
-            driver.step()
+        if death_count > 10:
+            backwards()
+            death_count = 0
+        else:
+            stop()
 
 
     speed = 3 #km/h
