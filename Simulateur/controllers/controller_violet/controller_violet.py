@@ -45,7 +45,6 @@ def backwards():
     for _ in range(backwards_duration // basicTimeStep):
         speed = -1
         angle = np.sign(donnees_lidar[-32]-donnees_lidar[32]) * 0.3
-        print(angle)
         driver.setCruisingSpeed(speed)
         driver.setSteeringAngle(0)
         driver.step()
@@ -76,7 +75,6 @@ while driver.step() != -1:
     speed = 3 #km/h
     #l'angle de la direction est la différence entre les mesures des rayons
     angle = np.sign(donnees_lidar[32]-donnees_lidar[-32]) * 0.3
-    print(angle)
     # clamp speed and angle to max values
     if speed > maxSpeed:
         speed = maxSpeed
