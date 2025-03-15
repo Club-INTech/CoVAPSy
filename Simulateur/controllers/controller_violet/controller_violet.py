@@ -65,7 +65,7 @@ while driver.step() != -1:
     # goes backwards
     if sensor_data == 1:
         death_count += 1
-        if death_count < 10:
+        if death_count < 3:
             print("backwards")
             backwards()
         else:
