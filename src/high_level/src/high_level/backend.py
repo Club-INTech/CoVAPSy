@@ -132,7 +132,7 @@ class BackendAPI(Program):
                 "car_control": prog_name,
                 "program_id": last_ctrl,
                 "tof": self.server.tof.distance
-                if self.server.tof.distance is not None
+                if self.server.tof is not None
                 else 8888,
                 "crashed": self.server.crash_car.crashed,
                 "camera_red_or_green": self.server.camera_red_or_green.is_reverse,
