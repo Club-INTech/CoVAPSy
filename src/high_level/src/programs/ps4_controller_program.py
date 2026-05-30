@@ -122,6 +122,12 @@ class MyController(Controller):
     def on_right_arrow_press(self):
         self.direction = MAX_ANGLE
 
+    def on_left_arrow_release(self):
+        self.direction = 0
+
+    def on_right_arrow_release(self):
+        self.direction = 0
+
     def on_L3_right(self, value):
         # print("x_r :", value, "degrees : ",map_range(value,-32767, 32767, 60, 120))
         dir = map_range(value, 0, 32767, 0, MAX_ANGLE)
