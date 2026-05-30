@@ -122,6 +122,9 @@ class MyController(Controller):
     def on_right_arrow_press(self):
         self.direction = MAX_ANGLE
 
+    def on_left_right_arrow_release(self):
+        self.direction = 0
+
     def on_left_arrow_release(self):
         self.direction = 0
 
