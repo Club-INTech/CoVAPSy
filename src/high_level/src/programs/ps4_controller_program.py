@@ -128,6 +128,7 @@ class MyController(Controller):
     def on_right_arrow_release(self):
         self.direction = 0
 
+    """
     def on_L3_right(self, value):
         # print("x_r :", value, "degrees : ",map_range(value,-32767, 32767, 60, 120))
         dir = map_range(value, 0, 32767, 0, MAX_ANGLE)
@@ -137,6 +138,7 @@ class MyController(Controller):
         # print("x_r :", value, "degrees : ",map_range(value,-32767, 0, -MAX_ANGLE, 0 ))
         dir = self.stable_direction(value)
         self.direction = dir
+    """
 
     def on_L2_press(self, value):
         # print("x_r :", value, "degrees : ",map_range(value,-32767, 32767, 60, 120))
