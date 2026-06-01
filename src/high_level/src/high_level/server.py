@@ -42,6 +42,9 @@ class Server:
         self.led2 = LED("GPIO27")
         self.buzzer = Buzzer("GPIO26")
         self.log.info("GPIO: boutons, LEDs, buzzer initialized")
+        self.serial = None
+        self.device = None
+        self.bus = None
         try:
             self.serial = i2c(port=1, address=0x3C)
             self.device = ssd1306(self.serial)
