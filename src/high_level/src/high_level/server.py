@@ -42,11 +42,13 @@ class Server:
         self.led2 = LED("GPIO27")
         self.buzzer = Buzzer("GPIO26")
         self.log.info("GPIO: boutons, LEDs, buzzer initialized")
-
-        self.serial = i2c(port=1, address=0x3C)
-        self.device = ssd1306(self.serial)
-        self.bus = smbus.SMBus(1)  # 1 indicates /dev/i2c-1
-        self.log.info("I2C: bus open on /dev/i2c-1")
+        try:
+            self.serial = i2c(port=1, address=0x3C)
+            self.device = ssd1306(self.serial)
+            self.bus = smbus.SMBus(1)  # 1 indicates /dev/i2c-1
+            self.log.info("I2C: bus open on /dev/i2c-1")
+        except Exception as e:
+            self.log.error("Error initializing OLED display: %s", e)
 
         # initialization of time command
         self.initial_time = time.time()
@@ -182,7 +184,8 @@ class Server:
 
         if self.screen < len(self.programs):
             text = self.programs[self.screen].display()
-            self.display_combined_im(text)
+            if self.device is not None:
+                self.display_combined_im(text)
 
     def bouton_next(self):
         """go to next screen on oled display"""
