@@ -556,34 +556,30 @@ async function loadProgramsOnce() {
 
 
 async function init() {
+    // Caméra
     try {
         const camUrl = await fetchCameraUrl();
         const camEl = document.getElementById("camera_frame");
-        const camLink = document.getElementById("camera");
-        loadModels();
-        // const url = "http://10.255.28.97:8889/cam/";
 
-        // if (Hls.isSupported()) {
-        //     const hls = new Hls();
-        //     hls.loadSource(url);
-        //     hls.attachMedia(video);
-        // } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        //     video.src = url;
-        // }
-
-
-        if (camEl && camLink) {
+        if (camEl) {
             camEl.src = camUrl;
-
-        } else {
-            console.warn("Element #camera not found at initialization");
         }
+    } catch (e) {
+        console.error("Camera init failed:", e);
+    }
+
+    // Indépendants du Lidar
+    loadModels();
+    initTelemetryWS();
+    loadProgramsOnce();
+
+    // Lidar isolé, il peut mourir seul comme un grand
+    try {
         const data = await fetchLidarInit();
         initLidar(data);
-        initTelemetryWS();
-        loadProgramsOnce();
     } catch (e) {
-        console.error("Error in init:", e);
+        console.error("Lidar init failed, continuing without lidar:", e);
+        drawLidarUnavailable();
     }
 }
 
